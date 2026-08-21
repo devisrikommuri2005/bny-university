@@ -20,9 +20,9 @@ there's no real backend yet.
 
 | Role | Email | Password |
 |---|---|---|
-| Fresher | `ananya.rao@bny.com` | `Welcome@123` |
-| Experienced | `karthik.s@bny.com` | `Welcome@123` |
-| Admin | `priya.menon@bny.com` | `Admin@123` |
+| Fresher | `shreya.kalra@bny.com` | `Shinchan@123` |
+| Experienced | `rohit.saraf@bny.com` | `Shinchan@123` |
+| Admin | `aakanksha.chaudhary@bny.com` | `Shinchan@123` |
 
 Tick **"Use multi-factor verification"** on the login screen to see the MFA
 step — any 6-digit code is accepted in this draft.
