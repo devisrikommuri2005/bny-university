@@ -20,6 +20,6 @@ export function ProtectedLayout() {
 
 export function AdminRoute() {
   const { currentUser } = useAuth();
-  if (currentUser?.role !== "admin") return <Navigate to="/dashboard" replace />;
+  if (currentUser?.role?.toLowerCase() !== "admin") return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 }

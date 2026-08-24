@@ -17,11 +17,11 @@ export default function Login() {
   const [showForgot, setShowForgot] = useState(false);
   const [pendingMfa, setPendingMfa] = useState(false);
  
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
  
-    const result = login({ email, password, loginTab });
+    const result = await login({ email, password, loginTab });
     if (!result.ok) {
       setError(result.message);
       return;
@@ -31,13 +31,12 @@ export default function Login() {
       setPendingMfa(true);
       return;
     }
- 
-    navigate("/dashboard", { replace: true });
+	window.location.href = "/dashboard";
   };
  
   const finishAfterMfa = () => {
     setPendingMfa(false);
-    navigate("/dashboard", { replace: true });
+    window.location.href = "/dashboard";
   };
  
   const cancelMfa = () => {

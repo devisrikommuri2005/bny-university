@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePortalData } from "../context/PortalDataContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { exportAllData } from "../data/mockData.js";
 import { PageHeader, SectionHeading } from "./Dashboard.jsx";
 import Modal from "../components/Modal.jsx";
+import {createPOC,updatePOCById,deletePOCById,getAllPOCs} from "../services/adminPocService";
+import {getAssignedEmployees} from "../services/pocAssignmentService";
  
 const TABS = [
   { id: "users", label: "Manage Users" },
@@ -139,39 +141,118 @@ function UsersAdmin() {
  
 // ---------------------------------------------------------------- POC ----
 function PocAdmin() {
-  const { data, updatePOC, addPOC, removePOC } = usePortalData();
+  const { data } = usePortalData();
   const [editing, setEditing] = useState(null); // poc object or "new"
   const [form, setForm] = useState({ name: "", role: "", email: "", phone: "", slack: "" });
- 
+  const [employees, setEmployees] = useState({});
+  const [allPocs, setAllPocs] = useState([]);
+  useEffect(() => {
+
+    const loadAllEmployees =
+      async () => {
+        const employeeData = {};
+        for (const p of data.poc) {
+          try {
+            const response =
+              await getAssignedEmployees(
+                p.id
+              );
+            employeeData[p.id] =
+              response;
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        setEmployees(
+          employeeData
+        );
+      };
+    if (data.poc.length > 0) {
+      loadAllEmployees();
+    }
+  }, [data.poc]);
+  
+  useEffect(() => {
+    const loadPocs =
+      async () => {
+        try {
+          const response = await getAllPOCs();
+          setAllPocs(
+            response.data
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    loadPocs();
+  }, []);
+  
   const openEdit = (poc) => {
     setEditing(poc);
     setForm(poc ? { ...poc } : { name: "", role: "", email: "", phone: "", slack: "" });
   };
  
-  const save = (e) => {
+  const save = async (e) => {
+
     e.preventDefault();
-    if (editing === "new" || !editing) addPOC(form);
-    else updatePOC(editing.id, form);
-    setEditing(null);
+
+    try {
+      if (editing === "new" || !editing) {
+        await createPOC(form);
+      } else {
+        await updatePOCById(editing.id,form);
+      }
+      setEditing(null);
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to save POC",error);
+    }
+  };
+  
+  const loadEmployees =
+    async (pocId) => {
+      try {
+        const response = await getAssignedEmployees(pocId);
+        setEmployees(prev => ({
+          ...prev,
+          response
+        }));
+      } catch (error) {
+        console.error(error);
+      }
   };
  
   return (
     <section className="card section-card">
       <SectionHeading title="Points of Contact" note={`${data.poc.length} listed`} />
-      <div className="admin-table">
-        {data.poc.map((p) => (
-          <div className="admin-row" key={p.id}>
-            <div>
-              <p className="poc-name">{p.name}</p>
-              <p className="poc-role">{p.role} · {p.email} · {p.phone}</p>
-            </div>
-            <div className="admin-row-actions">
-              <button className="btn btn-secondary" onClick={() => openEdit(p)}>Edit</button>
-              <button className="btn-ghost danger" onClick={() => removePOC(p.id)}>Remove</button>
-            </div>
-          </div>
-        ))}
-      </div>
+	  <div className="admin-table">
+	    {allPocs.map((p) => (
+	      <div className="admin-row" key={p.id}>
+	        <div>
+	          <p className="poc-name">{p.name}</p>
+	          <p className="poc-role">{p.role} · {p.email} · {p.phone}</p>
+	          <div className="assigned-employees">
+	            <strong>Assigned Employees: </strong>
+	            <ul>
+	              {(employees[p.id] || []).map((emp) => (
+	                <li key={emp}>
+	                  {emp}
+	                </li>
+	              ))}
+	            </ul>
+	          </div>
+	        </div>
+	        <div className="admin-row-actions">
+	          <button className="btn btn-secondary" onClick={() => openEdit(p)}>Edit</button>
+	          <button  className="btn-ghost danger" onClick={async () => {
+	              await deletePOCById(p.id );
+				  window.location.reload();
+	            }}
+	          >Remove</button>
+	        </div>
+	      </div>
+	    ))}
+	  </div>
       <button className="btn btn-primary" onClick={() => openEdit("new")}>+ Add POC</button>
  
       <Modal open={!!editing} title={editing === "new" ? "Add POC" : "Edit POC"} onClose={() => setEditing(null)}>

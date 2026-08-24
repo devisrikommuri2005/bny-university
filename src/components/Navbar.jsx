@@ -23,7 +23,7 @@ export default function Navbar() {
         <NavLink to="/dashboard" className={linkClass}>Dashboard</NavLink>
         <NavLink to="/training" className={linkClass}>Training</NavLink>
         <NavLink to="/programs" className={linkClass}>Programs</NavLink>
-        {currentUser?.role === "admin" && (
+        {currentUser?.role?.toLowerCase() === "admin" && (
           <NavLink to="/admin" className={linkClass}>Admin</NavLink>
         )}
       </nav>

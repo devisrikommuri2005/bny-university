@@ -1,15 +1,160 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { loadState, saveState } from "../data/mockData";
- 
+import { getPOCs } from "../services/pocService";
+import { getMandatoryTrainings } from "../services/mandatoryTrainingService";
+import { getOnboardingFiles } from "../services/onboardingFileService";
+import {updateTrainingStatus,getTrainingStatuses} from "../services/mandatoryTrainingStatusService";
+  
 const PortalDataContext = createContext(null);
  
 export function PortalDataProvider({ children }) {
-  const [data, setData] = useState(() => loadState());
+	const [data, setData] = useState({
+	  poc: [],
+	  onboardingFiles: [],
+	  mandatoryTrainings: [],
+	  introToAccount: [],
+	  domainTrainings: [],
+	  functionalTrainings: [],
+	  interviewPrep: {
+	    questions: [],
+	    faqs: []
+	  },
+	  programs: []
+	});
  
   useEffect(() => {
-    saveState(data);
-  }, [data]);
+    const fetchPOCs = async () => {
+      try {
+		const response = await getPOCs();
+		console.log(
+		"POC Response",
+		response
+		);
+		setData(prev => ({
+		    ...prev,
+		    poc: response.data.map(p => ({
+		        id: p.id,
+		        name: p.name,
+		        role: p.designation,
+		        email: p.email,
+		        phone: p.phoneNumber
+		    }))
+		}));
+      } catch (error) {
+        console.error(
+          "Failed to fetch POCs",
+          error
+        );
+      }
+    };
+    fetchPOCs();
+  }, []);
+  
+  
+  
+  useEffect(() => {
+
+    const fetchMandatoryTrainings =
+      async () => {
+
+        try {
+
+			const trainingsResponse =
+			    await getMandatoryTrainings();
+
+			const statusesResponse =
+			    await getTrainingStatuses();
+
+			const statuses =
+			    statusesResponse.data;
+
+			console.log(
+			    "Mandatory Trainings:",
+			    trainingsResponse
+			);
+
+			setData(prev => ({
+			  ...prev,
+
+			  mandatoryTrainings:
+			    trainingsResponse.data.map(t => {
+
+			      const match =
+			        statuses.find(
+			          s => s.trainingId === t.id
+			        );
+
+			      return {
+
+			        id: t.id,
+
+			        title: t.title,
+
+			        link: t.sharePointUrl,
+
+			        status:
+			          match?.status === "COMPLETED"
+			            ? "Completed"
+			            : match?.status === "IN_PROGRESS"
+			            ? "In Progress"
+			            : "Not Started"
+			      };
+			    })
+			}));
+
+        } catch (error) {
+
+          console.error(
+            "Failed to fetch mandatory trainings",
+            error
+          );
+        }
+      };
+
+    fetchMandatoryTrainings();
+
+  }, []);
  
+  useEffect(() => {
+
+    const fetchOnboardingFiles =
+      async () => {
+
+        try {
+
+          const response =
+            await getOnboardingFiles();
+			
+			
+
+          setData(prev => ({
+            ...prev,
+
+            onboardingFiles:
+              response.data.map(file => ({
+
+                id: file.id,
+
+                title: file.title,
+
+                link: file.sharePointUrl
+              }))
+          }));
+		  
+
+        } catch (error) {
+
+          console.error(
+            "Failed to fetch onboarding files",
+            error
+          );
+        }
+      };
+
+    fetchOnboardingFiles();
+
+  }, []);
+  
   const updatePOC = useCallback((pocId, fields) => {
     setData((prev) => ({
       ...prev,
@@ -50,14 +195,37 @@ export function PortalDataProvider({ children }) {
     }));
   }, []);
  
-  const updateMandatoryTrainingStatus = useCallback((trainingId, status) => {
-    setData((prev) => ({
-      ...prev,
-      mandatoryTrainings: prev.mandatoryTrainings.map((t) =>
-        t.id === trainingId ? { ...t, status } : t
-      ),
-    }));
-  }, []);
+  const updateMandatoryTrainingStatus =
+    useCallback(
+      async (trainingId, status) => {
+
+        try {
+
+          await updateTrainingStatus(
+            trainingId,
+            status.toUpperCase().replaceAll(" ", "_")
+          );
+
+          setData((prev) => ({
+            ...prev,
+            mandatoryTrainings:
+              prev.mandatoryTrainings.map((t) =>
+                t.id === trainingId
+                  ? { ...t, status }
+                  : t
+              ),
+          }));
+
+        } catch (error) {
+
+          console.error(
+            "Failed to update status",
+            error
+          );
+        }
+      },
+      []
+    );
  
   const addMandatoryTraining = useCallback((training) => {
     setData((prev) => ({

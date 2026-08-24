@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { loadUsers, saveUsers } from "../data/mockData";
- 
+import { loginUser } from "../services/authService";
+
 const AuthContext = createContext(null);
 const SESSION_KEY = "bny_portal_session";
  
@@ -33,33 +34,27 @@ export function AuthProvider({ children }) {
    * Returns { ok: true } or { ok: false, message } — never throws,
    * so the Login screen can show the error inline without a try/catch.
    */
-  const login = useCallback(({ email, password, loginTab }) => {
-    const trimmedEmail = email.trim().toLowerCase();
- 
-    if (!trimmedEmail || !password) {
-      return { ok: false, message: "Enter both your email and password to continue." };
-    }
- 
-    const match = users.find((u) => u.email.toLowerCase() === trimmedEmail);
- 
-    if (!match) {
-      return { ok: false, message: "We couldn't find an account with that email." };
-    }
-    if (match.password !== password) {
-      return { ok: false, message: "That password doesn't match our records. Please try again." };
-    }
-    if (loginTab === "admin" && match.role !== "admin") {
-      return { ok: false, message: "This account doesn't have Admin access. Use the Portal Login tab instead." };
-    }
-    if (loginTab === "user" && match.role === "admin") {
-      return { ok: false, message: "Admin accounts should sign in from the Admin Login tab." };
-    }
- 
-    const { password: _pw, ...safeUser } = match;
-    setCurrentUser(safeUser);
-    persistSession(safeUser);
-    return { ok: true };
-  }, [users]);
+  const login = useCallback(
+    async ({ email, password, loginTab }) => {
+      try {
+        const response = await loginUser(email, password);
+        const token = response.data.token;
+		const user = {
+		    email,
+		    username: response.data.username,
+		    name: response.data.fullName,
+		    role: response.data.role,
+		};
+        sessionStorage.setItem("jwtToken",token);
+        setCurrentUser(user);
+        persistSession(user);
+        return { ok: true };
+      } catch (error) {
+        return {ok: false,message:error?.response?.data?.message || "Login failed",};
+      }
+    },
+    []
+  );
  
   const logout = useCallback(() => {
     setCurrentUser(null);

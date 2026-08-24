@@ -38,14 +38,14 @@ export default function Dashboard() {
           </div>
         </section>
  
-        {isFresher && (
+        {(
           <section className="card section-card">
             <SectionHeading title="Onboarding Files" note={`${data.onboardingFiles.length} documents`} />
             <ul className="link-list file-link-list">
               {data.onboardingFiles.map((f) =>
                 f.link ? (
                   <li key={f.id}>
-                    <a href={f.link} target="_blank" rel="noreferrer">
+                    <a href={f.link} rel="noreferrer">
                       <span className="file-icon" aria-hidden="true">{fileIcon(f.title)}</span>
                       {f.title}
                     </a>
@@ -62,7 +62,7 @@ export default function Dashboard() {
           </section>
         )}
  
-        {isFresher && (
+        {(
           <section className="card section-card">
             <SectionHeading title="Mandatory Trainings" note={`${data.mandatoryTrainings.length} required`} />
             <ul className="training-check-list">
