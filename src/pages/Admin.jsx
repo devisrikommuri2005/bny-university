@@ -5,8 +5,11 @@ import { exportAllData } from "../data/mockData.js";
 import { PageHeader, SectionHeading } from "./Dashboard.jsx";
 import Modal from "../components/Modal.jsx";
 import {createPOC,updatePOCById,deletePOCById,getAllPOCs} from "../services/adminPocService";
-import {getAssignedEmployees} from "../services/pocAssignmentService";
- 
+import {getAssignedEmployees,assignEmployeeToPoc} from "../services/pocAssignmentService";
+import { getAllUsers } from "../services/userService";
+import {createOnboardingFile,updateOnboardingFileById,deleteOnboardingFileById} from "../services/adminOnboardingFileService";
+import {createMandatoryTraining,updateMandatoryTrainingById,deleteMandatoryTrainingById} from "../services/adminMandatoryTrainingService"; 
+
 const TABS = [
   { id: "users", label: "Manage Users" },
   { id: "poc", label: "Points of Contact" },
@@ -146,17 +149,26 @@ function PocAdmin() {
   const [form, setForm] = useState({ name: "", role: "", email: "", phone: "", slack: "" });
   const [employees, setEmployees] = useState({});
   const [allPocs, setAllPocs] = useState([]);
+  const [assigningPoc, setAssigningPoc] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  
   useEffect(() => {
 
     const loadAllEmployees =
       async () => {
         const employeeData = {};
-        for (const p of data.poc) {
+        for (const p of allPocs) {
           try {
-            const response =
-              await getAssignedEmployees(
-                p.id
-              );
+			const response =
+			  await getAssignedEmployees(p.id);
+
+			console.log(
+			  "POC",
+			  p.id,
+			  response
+			);
+			  
             employeeData[p.id] =
               response;
           } catch (error) {
@@ -167,10 +179,11 @@ function PocAdmin() {
           employeeData
         );
       };
-    if (data.poc.length > 0) {
+	  
+    if (allPocs.length > 0) {
       loadAllEmployees();
     }
-  }, [data.poc]);
+  }, [allPocs]);
   
   useEffect(() => {
     const loadPocs =
@@ -185,6 +198,27 @@ function PocAdmin() {
         }
       };
     loadPocs();
+  }, []);
+  
+  useEffect(() => {
+
+    const loadUsers = async () => {
+
+      try {
+
+        const response =
+          await getAllUsers();
+
+        setUsers(response);
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    };
+
+    loadUsers();
+
   }, []);
   
   const openEdit = (poc) => {
@@ -209,6 +243,19 @@ function PocAdmin() {
     }
   };
   
+  const assignEmployee =
+    async () => {
+      try {
+        await assignEmployeeToPoc(
+          Number(selectedUserId),
+          assigningPoc.id
+        );
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+      }
+  };
+  
   const loadEmployees =
     async (pocId) => {
       try {
@@ -224,13 +271,13 @@ function PocAdmin() {
  
   return (
     <section className="card section-card">
-      <SectionHeading title="Points of Contact" note={`${data.poc.length} listed`} />
+      <SectionHeading title="Points of Contact" note={`${allPocs.length} listed`} />
 	  <div className="admin-table">
 	    {allPocs.map((p) => (
 	      <div className="admin-row" key={p.id}>
 	        <div>
 	          <p className="poc-name">{p.name}</p>
-	          <p className="poc-role">{p.role} · {p.email} · {p.phone}</p>
+	          <p className="poc-role">{p.designation} · {p.email} · {p.phoneNumber}</p>
 	          <div className="assigned-employees">
 	            <strong>Assigned Employees: </strong>
 	            <ul>
@@ -242,17 +289,27 @@ function PocAdmin() {
 	            </ul>
 	          </div>
 	        </div>
-	        <div className="admin-row-actions">
-	          <button className="btn btn-secondary" onClick={() => openEdit(p)}>Edit</button>
-	          <button  className="btn-ghost danger" onClick={async () => {
-	              await deletePOCById(p.id );
-				  window.location.reload();
-	            }}
-	          >Remove</button>
-	        </div>
+			
+			<div className="admin-row-actions">
+			  <button className="btn btn-primary" onClick={() => setAssigningPoc(p)}>
+			    + Assign
+			  </button>
+
+			  <button className="btn btn-secondary" onClick={() => openEdit(p)} >
+			    Edit
+			  </button>
+
+			  <button className="btn-ghost danger" onClick={async () => {
+			      await deletePOCById(p.id);
+			      window.location.reload();
+			    }}>
+			    Remove
+			  </button>
+			</div>
 	      </div>
 	    ))}
 	  </div>
+	  
       <button className="btn btn-primary" onClick={() => openEdit("new")}>+ Add POC</button>
  
       <Modal open={!!editing} title={editing === "new" ? "Add POC" : "Edit POC"} onClose={() => setEditing(null)}>
@@ -268,20 +325,50 @@ function PocAdmin() {
           </div>
         </form>
       </Modal>
+	  <Modal open={!!assigningPoc} title="Assign Employee" onClose={() => setAssigningPoc(null)}>
+
+	    <label className="field-label">
+	      Select Employee
+	    </label>
+
+	    <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
+	      <option value="">Select Employee</option>
+		  {users.filter(user => !(employees[assigningPoc?.id] || []).includes(user.name))
+		    .map(user => (
+		      <option key={user.id} value={user.id}>{user.name}</option>
+		  ))}
+	    </select>
+
+	    <div className="modal-actions">
+
+	      <button className="btn btn-secondary" onClick={() => setAssigningPoc(null)}>
+	        Cancel
+	      </button>
+
+	      <button className="btn btn-primary" onClick={assignEmployee}>
+			Assign
+	      </button>
+	    </div>
+	  </Modal>
     </section>
   );
 }
  
 // ------------------------------------------------------- Onboarding Files
 function OnboardingFilesAdmin() {
-  const { data, addOnboardingFile, updateOnboardingFile, removeOnboardingFile } = usePortalData();
+  const { data } = usePortalData();
   const [form, setForm] = useState({ title: "", link: "" });
  
-  const add = (e) => {
+  const add = async (e) => {
     e.preventDefault();
-    if (!form.title) return;
-    addOnboardingFile(form);
-    setForm({ title: "", link: "" });
+    if (!form.title)
+      return;
+    try {
+      await createOnboardingFile(form);
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+    }
   };
  
   return (
@@ -290,14 +377,24 @@ function OnboardingFilesAdmin() {
       <div className="admin-table">
         {data.onboardingFiles.map((f) => (
           <div className="admin-row stacked" key={f.id}>
-            <FormField label="File title" value={f.title} onChange={(v) => updateOnboardingFile(f.id, { title: v })} />
+		  	<FormField label="File title" value={f.title} onChange={async (v) => {
+				await updateOnboardingFileById(f.id,{...f,title: v});
+			      window.location.reload();
+			    }}
+			  />
             <FormField
               label="Link (SharePoint / OneDrive file URL)"
               type="url"
               value={f.link}
-              onChange={(v) => updateOnboardingFile(f.id, { link: v })}
+			  onChange={async (v) => {
+			    await updateOnboardingFileById(f.id,{...f,link: v});
+			    window.location.reload();
+			  }}
             />
-            <button className="btn-ghost danger" onClick={() => removeOnboardingFile(f.id)} style={{ alignSelf: "flex-start" }}>
+			<button className="btn-ghost danger" onClick={async () => {await deleteOnboardingFileById(f.id);
+			    window.location.reload();
+			  }}
+			  style={{ alignSelf: "flex-start" }}>
               Remove
             </button>
           </div>
@@ -314,14 +411,19 @@ function OnboardingFilesAdmin() {
  
 // ---------------------------------------------------- Mandatory Trainings
 function MandatoryTrainingAdmin() {
-  const { data, addMandatoryTraining, updateMandatoryTraining, removeMandatoryTraining } = usePortalData();
+  const { data } = usePortalData();
   const [form, setForm] = useState({ title: "", link: "" });
  
-  const add = (e) => {
+  const add = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.link) return;
-    addMandatoryTraining(form);
-    setForm({ title: "", link: "" });
+    if (!form.title || !form.link)
+      return;
+    try {
+      await createMandatoryTraining(form);
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+    }
   };
  
   return (
@@ -333,17 +435,24 @@ function MandatoryTrainingAdmin() {
             <FormField
               label="Training title"
               value={t.title}
-              onChange={(v) => updateMandatoryTraining(t.id, { title: v })}
+			  onChange={async (v) => {
+			    await updateMandatoryTrainingById(t.id,{...t,title: v});
+				window.location.reload();}}
             />
             <FormField
               label="Link"
               type="url"
               value={t.link}
-              onChange={(v) => updateMandatoryTraining(t.id, { link: v })}
+			  onChange={async (v) => {
+			    await updateMandatoryTrainingById(t.id,{...t,link: v});
+			    window.location.reload();
+			  }}
             />
             <button
               className="btn-ghost danger"
-              onClick={() => removeMandatoryTraining(t.id)}
+			  onClick={async () => {
+			    await deleteMandatoryTrainingById(t.id);
+			    window.location.reload();}}
               style={{ alignSelf: "flex-start" }}
             >
               Remove

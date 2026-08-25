@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePortalData } from "../context/PortalDataContext.jsx";
 import { PageHeader, SectionHeading } from "./Dashboard.jsx";
+import {getIntroductionTrainings, getDomainTrainings, getFunctionalTrainings} from "../services/trainingService";
 
 const TABS = [
   { id: "intro", label: "Introduction to Account" },
@@ -12,7 +13,32 @@ const TABS = [
 export default function Training() {
   const { data } = usePortalData();
   const [tab, setTab] = useState("intro");
+  const [introTrainings, setIntroTrainings] = useState([]);
+  const [domainTrainings, setDomainTrainings] = useState([]);
+  const [functionalTrainings, setFunctionalTrainings] = useState([]);
+  
+  useEffect(() => {
+    const loadTrainings = async () => {
+        try {
+          const intro = await getIntroductionTrainings();
 
+          const domain = await getDomainTrainings();
+
+          const functional = await getFunctionalTrainings();
+
+          setIntroTrainings(intro.data);
+
+          setDomainTrainings(domain.data);
+
+          setFunctionalTrainings(functional.data);
+
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    loadTrainings();
+  }, []);
+  
   return (
     <div className="page">
       <PageHeader
@@ -39,9 +65,9 @@ export default function Training() {
         <section className="card section-card">
           <SectionHeading title="Introduction to Account" note="Start here" />
           <ul className="link-list">
-            {data.introToAccount.map((item) => (
+            {introTrainings.map((item) => (
               <li key={item.id}>
-                <a href={item.link} target="_blank" rel="noreferrer">{item.title}</a>
+                <a href={item.sharePointUrl} target="_blank" rel="noreferrer">{item.title}</a>
               </li>
             ))}
           </ul>
@@ -50,11 +76,11 @@ export default function Training() {
 
       {tab === "domain" && (
         <section className="card section-card">
-          <SectionHeading title="Domain Specific Training" note={`${data.domainTrainings.length} tracks`} />
+          <SectionHeading title="Domain Specific Training" note={`${domainTrainings.length} tracks`} />
           <div className="tile-grid">
-            {data.domainTrainings.map((d) => (
-              <a className="domain-tile" key={d.id} href={d.link} target="_blank" rel="noreferrer">
-                <span>{d.name}</span>
+            {domainTrainings.map((d) => (
+              <a className="domain-tile" key={d.id} href={d.sharePointUrl} target="_blank" rel="noreferrer">
+                <span>{d.title}</span>
                 <span className="domain-tile-arrow" aria-hidden="true">→</span>
               </a>
             ))}
@@ -62,32 +88,35 @@ export default function Training() {
         </section>
       )}
 
-      {tab === "functional" && (
-        <section className="card section-card">
-          <SectionHeading title="Functional Training" note="Technologies + recorded sessions" />
-          <div className="functional-list">
-            {data.functionalTrainings.map((ft) => (
-              <div className="functional-item" key={ft.id}>
-                <div className="functional-item-head">
-                  <h3>{ft.tech}</h3>
-                  <a href={ft.link} target="_blank" rel="noreferrer" className="btn-ghost">Course material →</a>
-                </div>
-                {ft.recordings.length > 0 ? (
-                  <ul className="recording-list">
-                    {ft.recordings.map((r) => (
-                      <li key={r.id}>
-                        <a href={r.url} target="_blank" rel="noreferrer">▶ {r.title}</a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="empty-note">No recorded sessions yet — check back soon.</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+	  {tab === "functional" && (
+	    <section className="card section-card">
+	      <SectionHeading
+	        title="Functional Training"
+	        note="Technologies and course materials"
+	      />
+
+	      <div className="functional-list">
+	        {functionalTrainings.map((ft) => (
+	          <div
+	            className="functional-item"
+	            key={ft.id}
+	          >
+	            <div className="functional-item-head">
+
+	              <h3>{ft.title}</h3>
+				 <a>
+	              {ft.sharePointUrl}
+	                Course Material →
+	              </a>
+	            </div>
+	            <p className="empty-note">
+	              {ft.description}
+	            </p>
+	          </div>
+	        ))}
+	      </div>
+	    </section>
+	  )}
 
       {tab === "interview" && (
         <section className="card section-card">
