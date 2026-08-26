@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { usePortalData } from "../context/PortalDataContext.jsx";
 import { PageHeader, SectionHeading } from "./Dashboard.jsx";
 import {getIntroductionTrainings, getDomainTrainings, getFunctionalTrainings} from "../services/trainingService";
+import {getRecordedSessions} from "../services/recordedSessionService";
 
 const TABS = [
   { id: "intro", label: "Introduction to Account" },
@@ -16,7 +17,8 @@ export default function Training() {
   const [introTrainings, setIntroTrainings] = useState([]);
   const [domainTrainings, setDomainTrainings] = useState([]);
   const [functionalTrainings, setFunctionalTrainings] = useState([]);
-  
+  const [recordedSessions, setRecordedSessions] = useState({});
+		
   useEffect(() => {
     const loadTrainings = async () => {
         try {
@@ -38,6 +40,26 @@ export default function Training() {
       };
     loadTrainings();
   }, []);
+  
+  useEffect(() => {
+      const loadSessions = async () => {
+              const sessions = {};
+              for (const training of functionalTrainings) {
+                  try {
+                      const response = await getRecordedSessions(training.id);
+                      sessions[training.id] = response.data;
+                  } catch (error) {
+                      console.error(error);
+                  }
+              }
+              setRecordedSessions(
+                  sessions
+              );
+          };
+      if (functionalTrainings.length > 0) {
+          loadSessions();
+      }
+  }, [functionalTrainings]);
   
   return (
     <div className="page">
@@ -104,14 +126,34 @@ export default function Training() {
 	            <div className="functional-item-head">
 
 	              <h3>{ft.title}</h3>
-				 <a>
-	              {ft.sharePointUrl}
+				 <a
+	              href = {ft.sharePointUrl}>
 	                Course Material →
 	              </a>
 	            </div>
 	            <p className="empty-note">
 	              {ft.description}
 	            </p>
+				{(recordedSessions[ft.id] || []).length > 0 ? (
+				    <ul className="recording-list">
+				        {(recordedSessions[ft.id] || [])
+				            .map(session => (
+				            <li key={session.id}>
+				                <a href = {session.recordingUrl}>
+				                    ▶ {session.title}
+				                </a>
+
+				            </li>
+				        ))}
+				    </ul>
+
+				) : (
+
+				    <p className="empty-note">
+				        No recorded sessions yet.
+				    </p>
+
+				)}
 	          </div>
 	        ))}
 	      </div>

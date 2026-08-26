@@ -1,8 +1,23 @@
-import { usePortalData } from "../context/PortalDataContext.jsx";
+import { useState, useEffect } from "react";
 import { PageHeader } from "./Dashboard.jsx";
- 
+import { getPrograms } from "../services/programService";
+
 export default function Programs() {
-  const { data } = usePortalData();
+	const [programs,setPrograms] = useState([]);
+	
+	useEffect(() => {
+
+	  const loadPrograms = async () => {
+	      try {
+	        const response = await getPrograms();
+	        console.log("Programs",response);
+	        setPrograms(response.data);
+	      } catch (error) {
+	        console.error(error);
+	      }
+	    };
+	  loadPrograms();
+	}, []);
  
   return (
     <div className="page">
@@ -12,30 +27,26 @@ export default function Programs() {
         subtitle="Structured tracks available on your current account."
       />
  
-      <div className="program-grid">
-        {data.programs.map((p) => (
-          <div className="program-card" key={p.id}>
-            <div className="program-card-top">
-              <h2>{p.name}</h2>
-              <span className="badge badge-gold">{p.status}</span>
-            </div>
-            <p className="program-tagline">{p.tagline}</p>
-            <p className="program-description">{p.description}</p>
-            {p.resourceLink ? (
-              <a
-                href={p.resourceLink}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-secondary program-resource-btn"
-              >
-                View resources ↗
-              </a>
-            ) : (
-              <p className="empty-note program-resource-empty">Resources not added yet.</p>
-            )}
-          </div>
-        ))}
-      </div>
+	  <div className="program-grid">
+	    {programs.map((p) => (
+			<div className="program-card" key={p.id}>
+
+			  <div className="program-card-top">
+			    <h2>{p.title}</h2>
+			  </div>
+
+			  <p className="program-description">
+			    {p.description}
+			  </p>
+			  {p.link ? <a href={p.link}> View resources ↗ </a>  : (
+			    <p className="empty-note program-resource-empty">
+			      Resources not added yet.
+			    </p>
+			  )}
+
+			</div>
+	    ))}
+	  </div>
     </div>
   );
-}
+ }

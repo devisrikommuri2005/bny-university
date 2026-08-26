@@ -9,12 +9,17 @@ import {getAssignedEmployees,assignEmployeeToPoc} from "../services/pocAssignmen
 import { getAllUsers } from "../services/userService";
 import {createOnboardingFile,updateOnboardingFileById,deleteOnboardingFileById} from "../services/adminOnboardingFileService";
 import {createMandatoryTraining,updateMandatoryTrainingById,deleteMandatoryTrainingById} from "../services/adminMandatoryTrainingService"; 
+import {createRecordedSession, deleteRecordedSession, getRecordedSessions} from "../services/recordedSessionService";
+import {getFunctionalTrainings} from "../services/trainingService";
+import {getAllTrainings, createTraining, updateTrainingById, deleteTrainingById} from "../services/adminTrainingService";
+import {getAllPrograms, createProgram, updateProgramById, deleteProgramById} from "../services/adminProgramService";
 
 const TABS = [
   { id: "users", label: "Manage Users" },
   { id: "poc", label: "Points of Contact" },
   { id: "files", label: "Onboarding Files" },
   { id: "onboarding", label: "Mandatory Trainings" },
+  { id: "training", label: "Training Management" },
   { id: "sessions", label: "Recorded Sessions" },
   { id: "prep", label: "Interview Prep & FAQs" },
   { id: "programs", label: "Programs" },
@@ -54,6 +59,7 @@ export default function Admin() {
       {tab === "poc" && <PocAdmin />}
       {tab === "files" && <OnboardingFilesAdmin />}
       {tab === "onboarding" && <MandatoryTrainingAdmin />}
+	  {tab === "training" && <TrainingAdmin />}
       {tab === "sessions" && <RecordingsAdmin />}
       {tab === "prep" && <InterviewPrepAdmin />}
       {tab === "programs" && <ProgramsAdmin />}
@@ -409,17 +415,382 @@ function OnboardingFilesAdmin() {
   );
 }
  
+// ------------------------------------------------------------- Training
+function TrainingAdmin() {
+
+  const [trainings, setTrainings] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({
+      title: "",
+      description: "",
+      sharePointUrl: "",
+      trainingType: "FUNCTIONAL",
+      active: true
+    });
+
+  useEffect(() => {
+    const loadTrainings = async () => {
+        try {
+          const response = await getAllTrainings();
+          setTrainings(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    loadTrainings();
+  }, []);
+
+  const addTraining = async (e) => {
+      e.preventDefault();
+      try {
+        if (editing) {
+          await updateTrainingById(editing.id, form);
+        } else {
+          await createTraining(form);
+        }
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  const openEdit = (training) => {
+      setEditing(training);
+      setForm({
+        title: training.title,
+        description: training.description,
+        sharePointUrl: training.sharePointUrl,
+        trainingType: training.trainingType,
+        active: training.active
+      });
+    };
+
+  const cancelEdit = () => {
+      setEditing(null);
+      setForm({
+        title: "",
+        description: "",
+        sharePointUrl: "",
+        trainingType: "FUNCTIONAL",
+        active: true
+      });
+    };
+
+  return (
+
+    <section className="card section-card">
+
+      <SectionHeading title="Training Management" note={`${trainings.length} trainings`}/>
+      <div className="admin-table">
+        {trainings.map((training) => (
+          <div
+            className="admin-row stacked"
+            key={training.id}
+          >
+            <p>
+              <strong>
+                {training.title}
+              </strong>
+            </p>
+
+            <p>
+              {training.trainingType}
+            </p>
+
+            <p>
+              {training.description}
+            </p>
+
+            <p>
+              {training.sharePointUrl}
+            </p>
+
+            <div className="admin-row-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() =>
+                  openEdit(training)
+                }
+              >
+                Edit
+              </button>
+
+              <button
+                className="btn-ghost danger"
+                onClick={async () => {
+                  await deleteTrainingById(
+                    training.id
+                  );
+                  window.location.reload();
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <form
+        className="inline-add-form stacked"
+        onSubmit={addTraining}
+      >
+
+        <input
+          placeholder="Title"
+          value={form.title}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              title: e.target.value
+            })
+          }
+        />
+
+        <textarea
+          rows={3}
+          placeholder="Description"
+          value={form.description}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              description: e.target.value
+            })
+          }
+        />
+
+        <input
+          placeholder="SharePoint URL"
+          value={form.sharePointUrl}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              sharePointUrl:
+                e.target.value
+            })
+          }
+        />
+
+        <select
+          value={form.trainingType}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              trainingType:
+                e.target.value
+            })
+          }
+        >
+
+          <option value="INTRODUCTION">
+            INTRODUCTION
+          </option>
+
+          <option value="DOMAIN">
+            DOMAIN
+          </option>
+
+          <option value="FUNCTIONAL">
+            FUNCTIONAL
+          </option>
+
+        </select>
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+        >
+          {editing
+            ? "Update Training"
+            : "+ Add Training"}
+        </button>
+
+        {editing && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={cancelEdit}
+          >
+            Cancel Edit
+          </button>
+
+        )}
+      </form>
+    </section>
+  );
+}
 // ---------------------------------------------------- Mandatory Trainings
 function MandatoryTrainingAdmin() {
   const { data } = usePortalData();
-  const [form, setForm] = useState({ title: "", link: "" });
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({title: "", link: ""});
+  
+  const openEdit = (training) => {
+    setEditing(training);
+    setForm({
+      title: training.title,
+      link: training.link
+    });
+  };
+  
+  const cancelEdit = () => {
+    setEditing(null);
+    setForm({
+      title: "",
+      link: ""
+    });
+  };
  
   const add = async (e) => {
     e.preventDefault();
     if (!form.title || !form.link)
       return;
     try {
-      await createMandatoryTraining(form);
+      if (editing) {
+        await updateMandatoryTrainingById(
+          editing.id,
+          form
+        );
+      } else {
+        await createMandatoryTraining(
+          form
+        );
+      }
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+    }
+  };  
+ 
+  return (
+    <section className="card section-card">
+      <SectionHeading title="Mandatory Trainings" note={`${data.mandatoryTrainings.length} required for freshers`} />
+      <div className="admin-table">
+        {data.mandatoryTrainings.map((t) => (
+          <div className="admin-row stacked" key={t.id}>
+		  <p>
+		    <strong>
+		      {t.title}
+		    </strong>
+		  </p>
+
+		  <p>
+		    {t.link}
+		  </p>
+
+		  <div className="admin-row-actions">
+
+		    <button
+		      className="btn btn-secondary"
+		      onClick={() =>
+		        openEdit(t)
+		      }
+		    >
+		      Edit
+		    </button>
+
+		    <button
+		      className="btn-ghost danger"
+		      onClick={async () => {
+
+		        await deleteMandatoryTrainingById(
+		          t.id
+		        );
+
+		        window.location.reload();
+
+		      }}
+		    >
+		      Remove
+		    </button>
+
+		  </div>
+            
+          </div>
+        ))}
+      </div>
+      <form className="inline-add-form" onSubmit={add}>
+        <input placeholder="Training title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        <input placeholder="Link (URL)" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
+		<button
+		  type="submit"
+		  className="btn btn-primary"
+		>
+		  {editing
+		    ? "Update Training"
+		    : "+ Add"}
+		</button>
+		{editing && (
+
+		  <button
+		    type="button"
+		    className="btn btn-secondary"
+		    onClick={cancelEdit}
+		  >
+		    Cancel Edit
+		  </button>
+
+		)}
+      </form>
+    </section>
+  );
+}
+ 
+// ------------------------------------------------------------- Sessions
+function RecordingsAdmin() {
+  const [functionalTrainings, setFunctionalTrainings] = useState([]);
+  const [sessions, setSessions] = useState({});
+  const [selectedFt, setSelectedFt] = useState("");
+  const [form, setForm] = useState({ title: "", url: "" });
+ 
+  useEffect(() => {
+    const loadData = async () => {
+        try {
+          const response = await getFunctionalTrainings();
+          const trainings = response.data;
+          setFunctionalTrainings(trainings);
+          if (trainings.length > 0) {
+            setSelectedFt(trainings[0].id);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    loadData();
+  }, []);
+  
+  useEffect(() => {
+    const loadSessions = async () => {
+        const data = {};
+        for (const training of functionalTrainings) {
+          try {
+            const response = await getRecordedSessions(training.id);
+            data[training.id] = response.data;
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        setSessions(data);
+      };
+    if (functionalTrainings.length > 0) {
+      loadSessions();
+    }
+  }, [functionalTrainings]);
+  
+  const add = async (e) => {
+    e.preventDefault();
+    if (!selectedFt || !form.title || !form.url)
+      return;
+
+    try {
+      await createRecordedSession(
+        {
+          title: form.title,
+          recordingUrl: form.url,
+          trainingId:
+            Number(selectedFt)
+        }
+      );
       window.location.reload();
     } catch (error) {
       console.error(error);
@@ -428,68 +799,12 @@ function MandatoryTrainingAdmin() {
  
   return (
     <section className="card section-card">
-      <SectionHeading title="Mandatory Trainings" note={`${data.mandatoryTrainings.length} required for freshers`} />
-      <div className="admin-table">
-        {data.mandatoryTrainings.map((t) => (
-          <div className="admin-row stacked" key={t.id}>
-            <FormField
-              label="Training title"
-              value={t.title}
-			  onChange={async (v) => {
-			    await updateMandatoryTrainingById(t.id,{...t,title: v});
-				window.location.reload();}}
-            />
-            <FormField
-              label="Link"
-              type="url"
-              value={t.link}
-			  onChange={async (v) => {
-			    await updateMandatoryTrainingById(t.id,{...t,link: v});
-			    window.location.reload();
-			  }}
-            />
-            <button
-              className="btn-ghost danger"
-			  onClick={async () => {
-			    await deleteMandatoryTrainingById(t.id);
-			    window.location.reload();}}
-              style={{ alignSelf: "flex-start" }}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-      </div>
-      <form className="inline-add-form" onSubmit={add}>
-        <input placeholder="Training title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        <input placeholder="Link (URL)" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
-        <button type="submit" className="btn btn-primary">+ Add</button>
-      </form>
-    </section>
-  );
-}
- 
-// ------------------------------------------------------------- Sessions
-function RecordingsAdmin() {
-  const { data, addRecording, removeRecording } = usePortalData();
-  const [selectedFt, setSelectedFt] = useState(data.functionalTrainings[0]?.id ?? "");
-  const [form, setForm] = useState({ title: "", url: "" });
- 
-  const add = (e) => {
-    e.preventDefault();
-    if (!selectedFt || !form.title || !form.url) return;
-    addRecording(selectedFt, form);
-    setForm({ title: "", url: "" });
-  };
- 
-  return (
-    <section className="card section-card">
       <SectionHeading title="Recorded Sessions" note="Attach a recording to a Functional Training technology" />
  
       <form className="inline-add-form" onSubmit={add}>
         <select value={selectedFt} onChange={(e) => setSelectedFt(e.target.value)}>
-          {data.functionalTrainings.map((ft) => (
-            <option value={ft.id} key={ft.id}>{ft.tech}</option>
+          {functionalTrainings.map((ft) => (
+            <option value={ft.id} key={ft.id}>{ft.title}</option>
           ))}
         </select>
         <input placeholder="Session title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -498,19 +813,25 @@ function RecordingsAdmin() {
       </form>
  
       <div className="functional-list">
-        {data.functionalTrainings.map((ft) => (
+        {functionalTrainings.map((ft) => (
           <div className="functional-item" key={ft.id}>
             <div className="functional-item-head">
-              <h3>{ft.tech}</h3>
+              <h3>{ft.title}</h3>
             </div>
-            {ft.recordings.length === 0 ? (
+            {(sessions[ft.id] || []).length === 0 ? (
               <p className="empty-note">No sessions added yet.</p>
             ) : (
               <ul className="recording-list">
-                {ft.recordings.map((r) => (
+                {(sessions[ft.id] || []).map((r) => (
                   <li key={r.id} className="admin-row">
                     <a href={r.url} target="_blank" rel="noreferrer">▶ {r.title}</a>
-                    <button className="btn-ghost danger" onClick={() => removeRecording(ft.id, r.id)}>Remove</button>
+					<button className="btn-ghost danger" onClick={async () => {
+						await deleteRecordedSession(r.id);
+						window.location.reload();
+					}}
+					>
+					Remove
+					</button>
                   </li>
                 ))}
               </ul>
@@ -581,38 +902,149 @@ function InterviewPrepAdmin() {
  
 // --------------------------------------------------------------- Programs
 function ProgramsAdmin() {
-  const { data, updateProgram } = usePortalData();
- 
+
+  const [programs, setPrograms] = useState([]);
+  const [editing, setEditing] = useState(null);
+
+  const [form, setForm] = useState({
+      title: "",
+      description: "",
+      link: ""
+    });
+
+  useEffect(() => {
+    const loadPrograms = async () => {
+        try {
+          const response = await getAllPrograms();
+          setPrograms(
+            response.data
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    loadPrograms();
+  }, []);
+
+  const addProgram = async (e) => {
+      e.preventDefault();
+      try {
+		if (editing) {
+		  await updateProgramById(
+		    editing.id,
+		    form
+		  );
+		} else {
+		  await createProgram(
+		    form
+		  );
+		}
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+	
+	const openEdit = (program) => {
+	  setEditing(program);
+	  setForm({
+	    title: program.title,
+	    description: program.description,
+	    link: program.link
+	  });
+	};
+
   return (
     <section className="card section-card">
-      <SectionHeading title="Programs" note="Elevate & Forge" />
+      <SectionHeading title="Programs" note={`${programs.length} programs`}/>
       <div className="admin-table">
-        {data.programs.map((p) => (
-          <div className="admin-row stacked" key={p.id}>
-            <FormField label="Name" value={p.name} onChange={(v) => updateProgram(p.id, { name: v })} />
-            <FormField label="Tagline" value={p.tagline} onChange={(v) => updateProgram(p.id, { tagline: v })} />
-            <label className="field-label">Description</label>
-            <textarea
-              rows={2}
-              value={p.description}
-              onChange={(e) => updateProgram(p.id, { description: e.target.value })}
-            />
-            <label className="field-label">Status</label>
-            <select value={p.status} onChange={(e) => updateProgram(p.id, { status: e.target.value })}>
-              <option>Enrolling</option>
-              <option>Cohort in progress</option>
-              <option>Closed</option>
-            </select>
-            <FormField
-              label="Resource folder link (OneDrive, etc.)"
-              type="url"
-              value={p.resourceLink || ""}
-              onChange={(v) => updateProgram(p.id, { resourceLink: v })}
-            />
+        {programs.map((p) => (
+          <div
+            className="admin-row stacked"
+            key={p.id}
+          >
+            <p>
+              <strong>
+                {p.title}
+              </strong>
+            </p>
+            <p>
+              {p.description}
+            </p>
+            <p>
+              {p.link}
+            </p>
+			<div className="admin-row-actions">
+
+			  <button
+			    className="btn btn-secondary"
+			    onClick={() =>
+			      openEdit(p)
+			    }
+			  >
+			    Edit
+			  </button>
+
+			  <button
+			    className="btn-ghost danger"
+			    onClick={async () => {
+
+			      await deleteProgramById(
+			        p.id
+			      );
+
+			      window.location.reload();
+
+			    }}
+			  >
+			    Remove
+			  </button>
+
+			</div>
           </div>
         ))}
       </div>
+	  
+      <form className="inline-add-form stacked" onSubmit={addProgram}>
+
+        <input placeholder="Program Title" value={form.title} onChange={(e) =>
+            setForm({...form, title: e.target.value})
+          }
+        />
+
+        <textarea
+          rows={3}
+          placeholder="Description"
+          value={form.description}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              description: e.target.value
+            })
+          }
+        />
+
+        <input
+          placeholder="Resource Link"
+          value={form.link}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              link: e.target.value
+            })
+          }
+        />
+
+		<button type="submit" className="btn btn-primary">
+		  {editing
+		    ? "Update Program"
+		    : "+ Add Program"}
+		</button>
+
+      </form>
+
     </section>
+
   );
 }
  
