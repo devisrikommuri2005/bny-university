@@ -115,7 +115,7 @@ export function PortalDataProvider({ children }) {
 
   }, []);
  
-  useEffect(() => {
+ 
 
     const fetchOnboardingFiles =
       async () => {
@@ -150,10 +150,9 @@ export function PortalDataProvider({ children }) {
           );
         }
       };
-
-    fetchOnboardingFiles();
-
-  }, []);
+	  useEffect(() => {
+	    fetchOnboardingFiles();
+	  }, []);
   
   const updatePOC = useCallback((pocId, fields) => {
     setData((prev) => ({

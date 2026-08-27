@@ -8,11 +8,13 @@ import {createPOC,updatePOCById,deletePOCById,getAllPOCs} from "../services/admi
 import {getAssignedEmployees,assignEmployeeToPoc} from "../services/pocAssignmentService";
 import { getAllUsers } from "../services/userService";
 import {createOnboardingFile,updateOnboardingFileById,deleteOnboardingFileById} from "../services/adminOnboardingFileService";
+import {getOnboardingFiles } from "../services/onboardingFileService";
 import {createMandatoryTraining,updateMandatoryTrainingById,deleteMandatoryTrainingById} from "../services/adminMandatoryTrainingService"; 
 import {createRecordedSession, deleteRecordedSession, getRecordedSessions} from "../services/recordedSessionService";
 import {getFunctionalTrainings} from "../services/trainingService";
 import {getAllTrainings, createTraining, updateTrainingById, deleteTrainingById} from "../services/adminTrainingService";
 import {getAllPrograms, createProgram, updateProgramById, deleteProgramById} from "../services/adminProgramService";
+import {getMandatoryTrainings} from "../services/mandatoryTrainingService";
 
 const TABS = [
   { id: "users", label: "Manage Users" },
@@ -161,8 +163,7 @@ function PocAdmin() {
   
   useEffect(() => {
 
-    const loadAllEmployees =
-      async () => {
+    const loadAllEmployees = async () => {
         const employeeData = {};
         for (const p of allPocs) {
           try {
@@ -191,9 +192,8 @@ function PocAdmin() {
     }
   }, [allPocs]);
   
-  useEffect(() => {
-    const loadPocs =
-      async () => {
+  
+    const loadPocs = async () => {
         try {
           const response = await getAllPOCs();
           setAllPocs(
@@ -203,8 +203,9 @@ function PocAdmin() {
           console.error(error);
         }
       };
-    loadPocs();
-  }, []);
+	  useEffect(() => {
+		  loadPocs();
+	  }, []);
   
   useEffect(() => {
 
@@ -243,7 +244,7 @@ function PocAdmin() {
         await updatePOCById(editing.id,form);
       }
       setEditing(null);
-      window.location.reload();
+	  await loadPocs();
     } catch (error) {
       console.error("Failed to save POC",error);
     }
@@ -256,7 +257,9 @@ function PocAdmin() {
           Number(selectedUserId),
           assigningPoc.id
         );
-        window.location.reload();
+        await loadPocs();
+		setAssigningPoc(null);
+		setSelectedUserId("");
       } catch (error) {
         console.error(error);
       }
@@ -307,7 +310,7 @@ function PocAdmin() {
 
 			  <button className="btn-ghost danger" onClick={async () => {
 			      await deletePOCById(p.id);
-			      window.location.reload();
+			      await loadPocs();
 			    }}>
 			    Remove
 			  </button>
@@ -362,16 +365,60 @@ function PocAdmin() {
  
 // ------------------------------------------------------- Onboarding Files
 function OnboardingFilesAdmin() {
-  const { data } = usePortalData();
-  const [form, setForm] = useState({ title: "", link: "" });
+	const [onboardingFiles, setOnboardingFiles] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({title: "",link: ""});
+  
+  const loadOnboardingFiles =
+    async () => {
+      try {
+        const response =
+          await getOnboardingFiles();
+        setOnboardingFiles(
+          response.data
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+	
+	useEffect(() => {
+	  loadOnboardingFiles();
+	}, []);
+  
+  const openEdit = (file) => {
+    setEditing(file);
+    setForm({
+      title: file.title,
+      link: file.sharePointUrl || file.link
+    });
+  };
+  
+  const cancelEdit = () => {
+    setEditing(null);
+    setForm({
+      title: "",
+      link: ""
+    });
+  };
  
   const add = async (e) => {
     e.preventDefault();
     if (!form.title)
       return;
     try {
-      await createOnboardingFile(form);
-      window.location.reload();
+      if (editing) {
+        await updateOnboardingFileById(
+          editing.id,
+          form
+        );
+      } else {
+        await createOnboardingFile(
+          form
+        );
+      }
+      await loadOnboardingFiles();
+      cancelEdit();
     } catch (error) {
       console.error(error);
     }
@@ -379,37 +426,65 @@ function OnboardingFilesAdmin() {
  
   return (
     <section className="card section-card">
-      <SectionHeading title="Onboarding Files" note={`${data.onboardingFiles.length} documents · shown to freshers`} />
+      <SectionHeading title="Onboarding Files" note={`${onboardingFiles.length} documents · shown to freshers`} />
       <div className="admin-table">
-        {data.onboardingFiles.map((f) => (
+        {onboardingFiles.map((f) => (
           <div className="admin-row stacked" key={f.id}>
-		  	<FormField label="File title" value={f.title} onChange={async (v) => {
-				await updateOnboardingFileById(f.id,{...f,title: v});
-			      window.location.reload();
-			    }}
-			  />
-            <FormField
-              label="Link (SharePoint / OneDrive file URL)"
-              type="url"
-              value={f.link}
-			  onChange={async (v) => {
-			    await updateOnboardingFileById(f.id,{...f,link: v});
-			    window.location.reload();
-			  }}
-            />
-			<button className="btn-ghost danger" onClick={async () => {await deleteOnboardingFileById(f.id);
-			    window.location.reload();
-			  }}
-			  style={{ alignSelf: "flex-start" }}>
-              Remove
-            </button>
+		  <p>
+		    <strong>
+		      {f.title}
+		    </strong>
+		  </p>
+
+		  <p>
+		    {f.sharePointUrl}
+		  </p>
+
+		  <div className="admin-row-actions">
+		    <button
+		      className="btn btn-secondary"
+		      onClick={() =>
+		        openEdit(f)
+		      }
+		    >
+		      Edit
+		    </button>
+			
+		    <button
+		      className="btn-ghost danger"
+		      onClick={async () => {
+		        await deleteOnboardingFileById(
+		          f.id
+		        );
+				await loadOnboardingFiles();
+		      }}
+		    >
+		      Remove
+		    </button>
+		  </div>
           </div>
         ))}
       </div>
       <form className="inline-add-form" onSubmit={add}>
         <input placeholder="File title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         <input placeholder="Link (optional, add later)" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
-        <button type="submit" className="btn btn-primary">+ Add file</button>
+		<button
+		  type="submit"
+		  className="btn btn-primary"
+		>
+		  {editing
+		    ? "Update File"
+		    : "+ Add File"}
+		</button>
+		{editing && (
+		  <button
+		    type="button"
+		    className="btn btn-secondary"
+		    onClick={cancelEdit}
+		  >
+		    Cancel Edit
+		  </button>
+		)}
       </form>
     </section>
   );
@@ -428,7 +503,7 @@ function TrainingAdmin() {
       active: true
     });
 
-  useEffect(() => {
+
     const loadTrainings = async () => {
         try {
           const response = await getAllTrainings();
@@ -437,8 +512,9 @@ function TrainingAdmin() {
           console.error(error);
         }
       };
-    loadTrainings();
-  }, []);
+	  useEffect(() => {
+		  loadTrainings();
+	  }, []);
 
   const addTraining = async (e) => {
       e.preventDefault();
@@ -448,7 +524,7 @@ function TrainingAdmin() {
         } else {
           await createTraining(form);
         }
-        window.location.reload();
+        await loadTrainings();
       } catch (error) {
         console.error(error);
       }
@@ -521,7 +597,7 @@ function TrainingAdmin() {
                   await deleteTrainingById(
                     training.id
                   );
-                  window.location.reload();
+				  await loadTrainings();
                 }}
               >
                 Remove
@@ -621,15 +697,39 @@ function TrainingAdmin() {
 }
 // ---------------------------------------------------- Mandatory Trainings
 function MandatoryTrainingAdmin() {
-  const { data } = usePortalData();
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({title: "", link: ""});
+  const [mandatoryTrainings, setMandatoryTrainings] = useState([]);
+  
+  const loadMandatoryTrainings =
+    async () => {
+
+      try {
+
+        const response =
+          await getMandatoryTrainings();
+
+        setMandatoryTrainings(
+          response.data
+        );
+
+      } catch (error) {
+
+        console.error(error);
+      }
+  };
+  
+  useEffect(() => {
+
+    loadMandatoryTrainings();
+
+  }, []);
   
   const openEdit = (training) => {
     setEditing(training);
     setForm({
       title: training.title,
-      link: training.link
+      link: training.link || training.sharePointUrl
     });
   };
   
@@ -656,7 +756,8 @@ function MandatoryTrainingAdmin() {
           form
         );
       }
-      window.location.reload();
+	  await loadMandatoryTrainings();
+	  cancelEdit();
     } catch (error) {
       console.error(error);
     }
@@ -664,9 +765,9 @@ function MandatoryTrainingAdmin() {
  
   return (
     <section className="card section-card">
-      <SectionHeading title="Mandatory Trainings" note={`${data.mandatoryTrainings.length} required for freshers`} />
+      <SectionHeading title="Mandatory Trainings" note={`${mandatoryTrainings.length} required for freshers`} />
       <div className="admin-table">
-        {data.mandatoryTrainings.map((t) => (
+        {mandatoryTrainings.map((t) => (
           <div className="admin-row stacked" key={t.id}>
 		  <p>
 		    <strong>
@@ -675,7 +776,7 @@ function MandatoryTrainingAdmin() {
 		  </p>
 
 		  <p>
-		    {t.link}
+		    {t.sharePointUrl || t.link}
 		  </p>
 
 		  <div className="admin-row-actions">
@@ -696,9 +797,8 @@ function MandatoryTrainingAdmin() {
 		        await deleteMandatoryTrainingById(
 		          t.id
 		        );
-
-		        window.location.reload();
-
+				await loadMandatoryTrainings();
+				cancelEdit();
 		      }}
 		    >
 		      Remove
@@ -735,15 +835,14 @@ function MandatoryTrainingAdmin() {
     </section>
   );
 }
- 
+
 // ------------------------------------------------------------- Sessions
 function RecordingsAdmin() {
   const [functionalTrainings, setFunctionalTrainings] = useState([]);
   const [sessions, setSessions] = useState({});
   const [selectedFt, setSelectedFt] = useState("");
   const [form, setForm] = useState({ title: "", url: "" });
- 
-  useEffect(() => {
+
     const loadData = async () => {
         try {
           const response = await getFunctionalTrainings();
@@ -756,10 +855,11 @@ function RecordingsAdmin() {
           console.error(error);
         }
       };
-    loadData();
-  }, []);
+	  useEffect(() => {
+	    	loadData();
+	  }, []);
   
-  useEffect(() => {
+  
     const loadSessions = async () => {
         const data = {};
         for (const training of functionalTrainings) {
@@ -772,11 +872,12 @@ function RecordingsAdmin() {
         }
         setSessions(data);
       };
-    if (functionalTrainings.length > 0) {
-      loadSessions();
-    }
-  }, [functionalTrainings]);
-  
+	  useEffect(() => {
+		    if (functionalTrainings.length > 0) {
+		      loadSessions();
+		    }
+	 }, [functionalTrainings]);
+	  
   const add = async (e) => {
     e.preventDefault();
     if (!selectedFt || !form.title || !form.url)
@@ -791,7 +892,11 @@ function RecordingsAdmin() {
             Number(selectedFt)
         }
       );
-      window.location.reload();
+	  setForm({
+		  title: "",
+		  url: ""
+	  });
+	  await loadSessions();
     } catch (error) {
       console.error(error);
     }
@@ -824,10 +929,10 @@ function RecordingsAdmin() {
               <ul className="recording-list">
                 {(sessions[ft.id] || []).map((r) => (
                   <li key={r.id} className="admin-row">
-                    <a href={r.url} target="_blank" rel="noreferrer">▶ {r.title}</a>
+                    <a href={r.recordingUrl} target="_blank" rel="noreferrer">▶ {r.title}</a>
 					<button className="btn-ghost danger" onClick={async () => {
 						await deleteRecordedSession(r.id);
-						window.location.reload();
+						await loadSessions();
 					}}
 					>
 					Remove
@@ -842,7 +947,7 @@ function RecordingsAdmin() {
     </section>
   );
 }
- 
+
 // -------------------------------------------------------- Interview prep
 function InterviewPrepAdmin() {
   const { data, addInterviewQuestion, addFaq } = usePortalData();
@@ -912,7 +1017,7 @@ function ProgramsAdmin() {
       link: ""
     });
 
-  useEffect(() => {
+ 
     const loadPrograms = async () => {
         try {
           const response = await getAllPrograms();
@@ -923,27 +1028,34 @@ function ProgramsAdmin() {
           console.error(error);
         }
       };
-    loadPrograms();
-  }, []);
+	  useEffect(() => {
+	    loadPrograms();
+	  }, []);
 
-  const addProgram = async (e) => {
-      e.preventDefault();
-      try {
-		if (editing) {
-		  await updateProgramById(
-		    editing.id,
-		    form
-		  );
-		} else {
-		  await createProgram(
-		    form
-		  );
-		}
-        window.location.reload();
-      } catch (error) {
-        console.error(error);
-      }
-    };
+	  const addProgram = async (e) => {
+	    e.preventDefault();
+	    try {
+	      if (editing) {
+	        await updateProgramById(
+	          editing.id,
+	          form
+	        );
+	      } else {
+	        await createProgram(
+	          form
+	        );
+	      }
+	      await loadPrograms();
+	      setEditing(null);
+	      setForm({
+	        title: "",
+	        description: "",
+	        link: ""
+	      });
+	    } catch (error) {
+	      console.error(error);
+	    }
+	  };
 	
 	const openEdit = (program) => {
 	  setEditing(program);
@@ -993,7 +1105,7 @@ function ProgramsAdmin() {
 			        p.id
 			      );
 
-			      window.location.reload();
+			      await loadPrograms();
 
 			    }}
 			  >
