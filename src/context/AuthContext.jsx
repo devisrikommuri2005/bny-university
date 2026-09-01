@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
    * so the Login screen can show the error inline without a try/catch.
    */
   const login = useCallback(
-    async ({ email, password, loginTab }) => {
+    async ({ email, password }) => {
       try {
         const response = await loginUser(email, password);
         const token = response.data.token;

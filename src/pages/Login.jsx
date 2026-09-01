@@ -8,8 +8,6 @@ import MfaModal from "../components/MfaModal.jsx";
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
- 
-  const [loginTab, setLoginTab] = useState("user"); // "user" | "admin"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mfaEnabled, setMfaEnabled] = useState(false);
@@ -21,7 +19,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
  
-    const result = await login({ email, password, loginTab });
+    const result = await login({ email, password });
     if (!result.ok) {
       setError(result.message);
       return;
@@ -70,35 +68,12 @@ export default function Login() {
             <span className="login-brandmark-text">BNY University</span>
           </div>
  
-          <div className="login-tabs" role="tablist" aria-label="Login type">
-            <button
-              role="tab"
-              aria-selected={loginTab === "user"}
-              className={`login-tab ${loginTab === "user" ? "active" : ""}`}
-              onClick={() => { setLoginTab("user"); setError(""); }}
-              type="button"
-            >
-              Portal Login
-            </button>
-            <button
-              role="tab"
-              aria-selected={loginTab === "admin"}
-              className={`login-tab ${loginTab === "admin" ? "active" : ""}`}
-              onClick={() => { setLoginTab("admin"); setError(""); }}
-              type="button"
-            >
-              Admin Login
-            </button>
-          </div>
- 
           <h2 className="login-heading">
-            {loginTab === "user" ? "Sign in to your account" : "Admin sign in"}
+            Sign in to your account
           </h2>
-          <p className="login-subheading">
-            {loginTab === "user"
-              ? "For freshers and experienced hires alike."
-              : "Manage POCs, trainings, and portal content."}
-          </p>
+		  <p className="login-subheading">
+		    Access onboarding, trainings, programs and account resources.
+		  </p>
  
           <ErrorDialog message={error} onDismiss={() => setError("")} />
  
@@ -144,14 +119,10 @@ export default function Login() {
             </div>
  
             <button type="submit" className="btn btn-primary login-submit">
-              {loginTab === "user" ? "Login" : "Login as Admin"}
+              Login
             </button>
           </form>
  
-          <p className="login-demo-hint">
-            First time here? Sign in as Admin with <code>admin@bny.com</code> / <code>ChangeMe@123</code>,
-            then add real user logins from Admin → Manage Users.
-          </p>
         </div>
       </div>
  

@@ -31,7 +31,7 @@ export default function Dashboard() {
                 <div>
                   <p className="poc-name">{p.name}</p>
                   <p className="poc-role">{p.role}</p>
-                  <p className="poc-contact">{p.email} · {p.phone}</p>
+                  <p className="poc-contact">{p.email}</p>
                 </div>
               </div>
             ))}

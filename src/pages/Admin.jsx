@@ -5,7 +5,7 @@ import { exportAllData } from "../data/mockData.js";
 import { PageHeader, SectionHeading } from "./Dashboard.jsx";
 import Modal from "../components/Modal.jsx";
 import {createPOC,updatePOCById,deletePOCById,getAllPOCs} from "../services/adminPocService";
-import {getAssignedEmployees,assignEmployeeToPoc} from "../services/pocAssignmentService";
+import {getAssignedEmployees,assignEmployeeToPoc,removeEmployeeFromPoc} from "../services/pocAssignmentService";
 import { getAllUsers } from "../services/userService";
 import {createOnboardingFile,updateOnboardingFileById,deleteOnboardingFileById} from "../services/adminOnboardingFileService";
 import {getOnboardingFiles } from "../services/onboardingFileService";
@@ -15,6 +15,8 @@ import {getFunctionalTrainings} from "../services/trainingService";
 import {getAllTrainings, createTraining, updateTrainingById, deleteTrainingById} from "../services/adminTrainingService";
 import {getAllPrograms, createProgram, updateProgramById, deleteProgramById} from "../services/adminProgramService";
 import {getMandatoryTrainings} from "../services/mandatoryTrainingService";
+import {getAllUsers as getAdminUsers, getUserById, createUser, updateUserById, deleteUserById} from "../services/adminUserService";
+import {getProgramResources, createProgramResource, updateProgramResource, deleteProgramResource} from "../services/programResourceService";
 
 const TABS = [
   { id: "users", label: "Manage Users" },
@@ -25,6 +27,8 @@ const TABS = [
   { id: "sessions", label: "Recorded Sessions" },
   { id: "prep", label: "Interview Prep & FAQs" },
   { id: "programs", label: "Programs" },
+  { id: "programResources", label: "Program Resources"
+  }
 ];
  
 export default function Admin() {
@@ -65,94 +69,241 @@ export default function Admin() {
       {tab === "sessions" && <RecordingsAdmin />}
       {tab === "prep" && <InterviewPrepAdmin />}
       {tab === "programs" && <ProgramsAdmin />}
+	  {tab === "programResources" && <ProgramResourceAdmin />}
     </div>
   );
 }
  
 // -------------------------------------------------------------- Users ----
 function UsersAdmin() {
-  const { users, addUser, updateUser, removeUser } = useAuth();
-  const [form, setForm] = useState({
-    name: "", email: "", password: "", role: "user", track: "fresher", domain: "",
-  });
-  const [removeError, setRemoveError] = useState("");
- 
-  const add = (e) => {
-    e.preventDefault();
-    if (!form.name || !form.email || !form.password) return;
-    addUser({
-      ...form,
-      track: form.role === "admin" ? null : form.track,
-      domain: form.role === "admin" ? null : form.domain,
+
+  const [users, setUsers] = useState([]);
+
+  const [editing, setEditing] = useState(null);
+
+  const [form, setForm] =
+    useState({
+      fullName: "",
+      email: "",
+      username: "",
+      password: "",
+      role: "USER"
     });
-    setForm({ name: "", email: "", password: "", role: "user", track: "fresher", domain: "" });
+
+  const loadUsers = async () => {
+    try {
+      const response = await getAdminUsers();
+      setUsers(response);
+    } catch (error) {
+      console.error(error);
+    }
   };
- 
-  const handleRemove = (id) => {
-    const result = removeUser(id);
-    setRemoveError(result.ok ? "" : result.message);
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const openEdit = async (user) => {
+    try {
+      const response = await getUserById(user.id);
+      const fullUser = response;
+      setEditing(fullUser);
+      setForm({
+        fullName: fullUser.fullName,
+        email: fullUser.email,
+        username: fullUser.username,
+        password: "",
+        role: fullUser.role
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
- 
+
+  const cancelEdit = () => {
+    setEditing(null);
+    setForm({
+      fullName: "",
+      email: "",
+      username: "",
+      password: "",
+      role: "USER"
+    });
+  };
+
+  const save = async (e) => {
+    e.preventDefault();
+    try {
+      if (editing) {
+        await updateUserById(
+          editing.id,
+          {
+            fullName: form.fullName,
+            email: form.email,
+            username: form.username,
+            role: form.role
+          }
+        );
+      } else {
+        await createUser({
+          fullName: form.fullName,
+          email: form.email,
+          username: form.username,
+          password: form.password
+        });
+      }
+      await loadUsers();
+      cancelEdit();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <section className="card section-card">
-      <SectionHeading title="Manage Users" note={`${users.length} accounts`} />
-      {removeError && <p className="field-error" style={{ marginBottom: 12 }}>{removeError}</p>}
- 
+      <SectionHeading
+        title="Manage Users"
+        note={`${users.length} accounts`}
+      />
+
       <div className="admin-table">
         {users.map((u) => (
-          <div className="admin-row stacked" key={u.id}>
-            <FormField label="Name" value={u.name} onChange={(v) => updateUser(u.id, { name: v })} />
-            <FormField label="Email" type="email" value={u.email} onChange={(v) => updateUser(u.id, { email: v })} />
-            <FormField label="Password" value={u.password} onChange={(v) => updateUser(u.id, { password: v })} />
-            <label className="field-label">Role</label>
-            <select value={u.role} onChange={(e) => updateUser(u.id, { role: e.target.value })}>
-              <option value="user">Employee</option>
-              <option value="admin">Admin</option>
-            </select>
-            {u.role === "user" && (
-              <>
-                <label className="field-label">Track</label>
-                <select value={u.track || "fresher"} onChange={(e) => updateUser(u.id, { track: e.target.value })}>
-                  <option value="fresher">Fresher</option>
-                  <option value="experienced">Experienced</option>
-                </select>
-              </>
-            )}
-            <button
-              className="btn-ghost danger"
-              onClick={() => handleRemove(u.id)}
-              style={{ alignSelf: "flex-start" }}
-            >
-              Remove
-            </button>
+          <div
+            className="admin-row stacked"
+            key={u.id}
+          >
+            <p>
+              <strong>
+                {u.name}
+              </strong>
+            </p>
+
+			<p>
+			  {u.email} · {u.username} · {u.role}
+			</p>
+			
+            <div className="admin-row-actions">
+
+              <button className="btn btn-secondary" onClick={() => openEdit(u)}>
+                Edit
+              </button>
+
+              <button
+                className="btn-ghost danger"
+                onClick={async () => {
+                  await deleteUserById(u.id);
+                  await loadUsers();
+                }}
+              >
+                Remove
+              </button>
+            </div>
           </div>
         ))}
       </div>
- 
-      <SectionHeading title="Add a new user" />
-      <form className="inline-add-form stacked" onSubmit={add}>
-        <input placeholder="Full name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-        <input placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-        <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-          <option value="user">Employee</option>
-          <option value="admin">Admin</option>
-        </select>
-        {form.role === "user" && (
-          <select value={form.track} onChange={(e) => setForm({ ...form, track: e.target.value })}>
-            <option value="fresher">Fresher</option>
-            <option value="experienced">Experienced</option>
+
+      <SectionHeading
+        title={
+          editing
+            ? "Edit User"
+            : "Add a new user"
+        }
+      />
+
+      <form
+        className="inline-add-form stacked"
+        onSubmit={save}
+      >
+
+        <input
+          placeholder="Full name"
+          value={form.fullName}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              fullName:
+                e.target.value
+            })
+          }
+        />
+
+        <input
+          placeholder="Email"
+          type="email"
+          value={form.email}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              email:
+                e.target.value
+            })
+          }
+        />
+
+        <input
+          placeholder="Username"
+          value={form.username}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              username:
+                e.target.value
+            })
+          }
+        />
+
+        {!editing && (
+
+          <input
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                password:
+                  e.target.value
+              })
+            }
+          />
+        )}
+
+        {editing && (
+          <select
+            value={form.role}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                role:
+                  e.target.value
+              })
+            }
+          >
+            <option value="USER">
+              USER
+            </option>
+            <option value="ADMIN">
+              ADMIN
+            </option>
           </select>
         )}
-        <button type="submit" className="btn btn-primary">+ Add user</button>
+
+        <button type="submit" className="btn btn-primary">
+          {editing
+            ? "Update User"
+            : "+ Add User"}
+        </button>
+
+        {editing && (
+          <button type="button" className="btn btn-secondary" onClick={cancelEdit}>
+            Cancel Edit
+          </button>
+        )}
       </form>
     </section>
   );
 }
- 
 // ---------------------------------------------------------------- POC ----
 function PocAdmin() {
-  const { data } = usePortalData();
   const [editing, setEditing] = useState(null); // poc object or "new"
   const [form, setForm] = useState({ name: "", role: "", email: "", phone: "", slack: "" });
   const [employees, setEmployees] = useState({});
@@ -268,7 +419,10 @@ function PocAdmin() {
   const loadEmployees =
     async (pocId) => {
       try {
-        const response = await getAssignedEmployees(pocId);
+        const response =
+          await getAssignedEmployees(
+            pocId
+          );
         setEmployees(prev => ({
           ...prev,
           response
@@ -280,22 +434,43 @@ function PocAdmin() {
  
   return (
     <section className="card section-card">
-      <SectionHeading title="Points of Contact" note={`${allPocs.length} listed`} />
+      <SectionHeading title="Point of Contact" note={`${allPocs.length} listed`} />
 	  <div className="admin-table">
 	    {allPocs.map((p) => (
 	      <div className="admin-row" key={p.id}>
 	        <div>
 	          <p className="poc-name">{p.name}</p>
-	          <p className="poc-role">{p.designation} · {p.email} · {p.phoneNumber}</p>
+	          <p className="poc-role">{p.designation} · {p.email}</p>
 	          <div className="assigned-employees">
 	            <strong>Assigned Employees: </strong>
-	            <ul>
-	              {(employees[p.id] || []).map((emp) => (
-	                <li key={emp}>
-	                  {emp}
-	                </li>
-	              ))}
-	            </ul>
+				<ul>
+				  {(employees[p.id] || []).map((emp) => (
+					<li
+					  key={emp.userId}
+					  className="assigned-employee-item"
+					>
+					  <span className="employee-name">
+					    • {emp.name}
+					  </span>
+
+					  <button
+					    className="employee-remove"
+					    onClick={async () => {
+
+					      await removeEmployeeFromPoc(
+					        emp.userId,
+					        p.id
+					      );
+
+					      await loadPocs();
+
+					    }}
+					  >
+					    ✕
+					  </button>
+					</li>
+				  ))}
+				</ul>
 	          </div>
 	        </div>
 			
@@ -342,9 +517,9 @@ function PocAdmin() {
 
 	    <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
 	      <option value="">Select Employee</option>
-		  {users.filter(user => !(employees[assigningPoc?.id] || []).includes(user.name))
+		  {users.filter(user => !(employees[assigningPoc?.id] || []).some(emp => emp.userId === user.id))
 		    .map(user => (
-		      <option key={user.id} value={user.id}>{user.name}</option>
+				<option key={user.id} value={user.id}>{user.name}</option>
 		  ))}
 	    </select>
 
@@ -525,6 +700,7 @@ function TrainingAdmin() {
           await createTraining(form);
         }
         await loadTrainings();
+		cancelEdit();
       } catch (error) {
         console.error(error);
       }
@@ -1160,6 +1336,244 @@ function ProgramsAdmin() {
   );
 }
  
+// --------------------------------------------------------------- Programs Resources
+function ProgramResourceAdmin() {
+  const [programs, setPrograms] = useState([]);
+  const [selectedProgramId, setSelectedProgramId] = useState("");
+  const [resources, setResources] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] =
+    useState({
+      name: "",
+      type: "FOLDER",
+      url: ""
+    });
+
+  const loadPrograms = async () => {
+    try {
+      const response = await getAllPrograms();
+      setPrograms(response.data);
+      if (response.data.length > 0 && !selectedProgramId) {
+        setSelectedProgramId(
+          response.data[0].id
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const loadResources = async (programId) => {
+      try {
+        const response = await getProgramResources(programId);
+        setResources(
+          response.data
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  useEffect(() => {
+    loadPrograms();
+  }, []);
+
+  useEffect(() => {
+    if (selectedProgramId) {
+      loadResources(
+        selectedProgramId
+      );
+    }
+  }, [selectedProgramId]);
+
+  const openEdit = (resource) => {
+      setEditing(resource);
+      setForm({
+        name: resource.name,
+        type: resource.type,
+        url: resource.url
+      });
+    };
+
+  const cancelEdit = () => {
+      setEditing(null);
+      setForm({
+        name: "",
+        type: "FOLDER",
+        url: ""
+      });
+    };
+
+  const save = async (e) => {
+      e.preventDefault();
+      try {
+        const payload = {
+          ...form,
+          programId:
+            Number(
+              selectedProgramId
+            )
+        };
+
+        if (editing) {
+          await updateProgramResource(
+            editing.id,
+            payload
+          );
+        } else {
+          await createProgramResource(
+            payload
+          );
+        }
+        await loadResources(selectedProgramId);
+        cancelEdit();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  return (
+    <section className="card section-card">
+      <SectionHeading title="Program Resources" note={`${resources.length} resources`}/>
+	  
+      <label className="field-label">
+        Program
+      </label>
+
+      <select value={selectedProgramId} onChange={(e) =>
+          setSelectedProgramId(
+            e.target.value
+          )
+        }
+      >
+        {programs.map((program) => (
+          <option key={program.id} value={program.id}>
+            {program.title}
+          </option>
+        ))}
+      </select>
+
+      <div className="admin-table">
+        {resources.map((resource) => (
+          <div className="admin-row stacked" key={resource.id}>
+
+            <p>
+              <strong>
+                {resource.type ===
+                  "FOLDER"
+                    ? "📁"
+                    : "📄"}
+                {" "}
+                {resource.name}
+              </strong>
+            </p>
+
+            <p>
+              {resource.url}
+            </p>
+
+            <div className="admin-row-actions">
+
+              <button className="btn btn-secondary" onClick={() =>
+                  openEdit(
+                    resource
+                  )
+                }
+              >
+                Edit
+              </button>
+
+              <button className="btn-ghost danger" onClick={async () => {
+
+                  await deleteProgramResource(
+                    resource.id
+                  );
+
+                  await loadResources(
+                    selectedProgramId
+                  );
+
+                }}
+              >
+                Remove
+              </button>
+
+            </div>
+
+          </div>
+
+        ))}
+
+      </div>
+
+      <form className="inline-add-form stacked" onSubmit={save}>
+
+        <input placeholder="Resource Name" value={form.name} onChange={(e) =>
+            setForm({
+              ...form,
+              name:
+                e.target.value
+            })
+          }
+        />
+
+        <select value={form.type} onChange={(e) =>
+            setForm({
+              ...form,
+              type:
+                e.target.value
+            })
+          }
+        >
+          <option value="FOLDER">
+            FOLDER
+          </option>
+
+          <option value="FILE">
+            FILE
+          </option>
+        </select>
+
+        <input
+          placeholder="SharePoint URL"
+          value={form.url}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              url:
+                e.target.value
+            })
+          }
+        />
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+        >
+          {editing
+            ? "Update Resource"
+            : "+ Add Resource"}
+        </button>
+
+        {editing && (
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={cancelEdit}
+          >
+            Cancel Edit
+          </button>
+
+        )}
+
+      </form>
+
+    </section>
+
+  );
+}
+
 function FormField({ label, value, onChange, type = "text", required = false }) {
   return (
     <>

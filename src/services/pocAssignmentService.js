@@ -24,3 +24,14 @@ export const assignEmployeeToPoc = async (
         }
     );
 };
+
+export const removeEmployeeFromPoc =
+  async (userId, pocId) => {
+
+    const response =
+      await api.delete(
+        `/admin/poc-assignments/${pocId}/employees/${userId}`
+      );
+
+    return response.data;
+};

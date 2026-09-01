@@ -392,7 +392,41 @@
 .inline-add-form input, .inline-add-form select { flex: 1; min-width: 160px; }
 .inline-add-form.stacked { flex-direction: column; }
 .inline-add-form.stacked textarea { width: 100%; }
- 
+
+.assigned-employee-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.employee-name {
+  font-size: 16px;
+}
+
+.employee-remove {
+  border: none;
+  background: transparent;
+  color: #cf5f4b;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0;
+
+  /* Hide initially */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.assigned-employee-item:hover .employee-remove {
+  opacity: 1;
+  visibility: visible;
+}
+
+.employee-remove:hover {
+  color: #b63f2f;
+}
 /* =========================================================================
    Responsive
    ========================================================================= */

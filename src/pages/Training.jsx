@@ -7,7 +7,7 @@ import {getRecordedSessions} from "../services/recordedSessionService";
 const TABS = [
   { id: "intro", label: "Introduction to Account" },
   { id: "domain", label: "Domain Specific Training" },
-  { id: "functional", label: "Functional Training" },
+  { id: "functional", label: "Technical Skill Training" },
   { id: "interview", label: "Interview Prep & FAQs" },
 ];
 
@@ -113,7 +113,7 @@ export default function Training() {
 	  {tab === "functional" && (
 	    <section className="card section-card">
 	      <SectionHeading
-	        title="Functional Training"
+	        title="Technical Skill Training"
 	        note="Technologies and course materials"
 	      />
 
