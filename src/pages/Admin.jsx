@@ -1190,7 +1190,8 @@ function ProgramsAdmin() {
   const [form, setForm] = useState({
       title: "",
       description: "",
-      link: ""
+      link: "",
+	  category: "PROGRAM"
     });
 
  
@@ -1226,7 +1227,8 @@ function ProgramsAdmin() {
 	      setForm({
 	        title: "",
 	        description: "",
-	        link: ""
+	        link: "",
+			category: "PROGRAM"
 	      });
 	    } catch (error) {
 	      console.error(error);
@@ -1238,7 +1240,8 @@ function ProgramsAdmin() {
 	  setForm({
 	    title: program.title,
 	    description: program.description,
-	    link: program.link
+	    link: program.link,
+		category: program.category
 	  });
 	};
 
@@ -1311,6 +1314,7 @@ function ProgramsAdmin() {
             })
           }
         />
+		
 
         <input
           placeholder="Resource Link"
@@ -1322,6 +1326,19 @@ function ProgramsAdmin() {
             })
           }
         />
+		
+		<select value={form.category} onChange={(e) =>
+			setForm({...form, category: e.target.value})
+				  }
+		>
+				  <option value="PROGRAM">
+				    PROGRAM
+				  </option>
+
+				  <option value="BNY_DEMO">
+				    BNY DEMO
+				  </option>
+		</select>
 
 		<button type="submit" className="btn btn-primary">
 		  {editing
@@ -1346,7 +1363,8 @@ function ProgramResourceAdmin() {
     useState({
       name: "",
       type: "FOLDER",
-      url: ""
+      url: "",
+	  category: "PROGRAM"
     });
 
   const loadPrograms = async () => {
@@ -1431,6 +1449,35 @@ function ProgramResourceAdmin() {
         console.error(error);
       }
     };
+	
+	const getResourceIcon = (resource) => {
+	  if (resource.type === "FOLDER") {
+	    return "📁";
+	  }
+	  const lower = resource.name.toLowerCase();
+	  if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
+	    return "📊";
+	  }
+	  if (lower.endsWith(".pptx") || lower.endsWith(".ppt")) {
+	    return "📑";
+	  }
+	  if (lower.endsWith(".pdf")) {
+	    return "📕";
+	  }
+	  if (lower.endsWith(".docx") || lower.endsWith(".doc")) {
+	    return "📝";
+	  }
+	  if (lower.endsWith(".zip") || lower.endsWith(".rar")) {
+	  	return "🗜️";
+	  }
+	  if (lower.endsWith(".mp4") || lower.endsWith(".mov")) {
+	  	return "🎥";
+	  }
+	  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")) {
+	  	return "🖼️";
+	  }
+	  return "📄";
+	};
 
   return (
     <section className="card section-card">
@@ -1457,16 +1504,13 @@ function ProgramResourceAdmin() {
         {resources.map((resource) => (
           <div className="admin-row stacked" key={resource.id}>
 
-            <p>
-              <strong>
-                {resource.type ===
-                  "FOLDER"
-                    ? "📁"
-                    : "📄"}
-                {" "}
-                {resource.name}
-              </strong>
-            </p>
+		  <p>
+		    <strong>
+		      {getResourceIcon(resource)}
+		      {" "}
+		      {resource.name}
+		    </strong>
+		  </p>
 
             <p>
               {resource.url}

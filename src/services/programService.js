@@ -9,3 +9,14 @@ export const getPrograms = async () => {
 
     return response.data;
 };
+
+export const getProgramsByCategory =
+  async (category) => {
+
+    const response =
+      await api.get(
+        `/programs/category/${category}`
+      );
+
+    return response.data;
+};

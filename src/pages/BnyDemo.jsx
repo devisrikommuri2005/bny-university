@@ -3,22 +3,20 @@ import { PageHeader } from "./Dashboard.jsx";
 import { getProgramsByCategory } from "../services/programService";
 import { getProgramResources } from "../services/programResourceService";
 
-export default function Programs() {
+export default function BnyDemo() {
 	const [programs,setPrograms] = useState([]);
 	const [selectedProgram,setSelectedProgram] = useState(null);
 	const [resources,setResources] = useState([]);
 	
-	
+	const loadPrograms = async () => {
 
-	  const loadPrograms = async () => {
-	      try {
-	        const response = await getProgramsByCategory("PROGRAM");
-	        console.log("Programs",response);
-	        setPrograms(response.data);
-	      } catch (error) {
-	        console.error(error);
-	      }
-	    };
+	  try {
+	    const response = await getProgramsByCategory("BNY_DEMO");
+	    setPrograms(response.data);
+	  } catch (error) {
+	    console.error(error);
+	  }
+	};
 		useEffect(() => {
 		  loadPrograms();
 		}, []);
@@ -59,38 +57,38 @@ export default function Programs() {
 	  );
 
 	  const getFileIcon = (name) => {
-	    const lowerName = name.toLowerCase();
-	    if (lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls")) {
-	      return "📊";
-	    }
-	    if (lowerName.endsWith(".pptx") || lowerName.endsWith(".ppt")) {
-	      return "📑";
-	    }
-	    if (lowerName.endsWith(".pdf")) {
-	      return "📕";
-	    }
-	    if (lowerName.endsWith(".docx") || lowerName.endsWith(".doc")) {
-	      return "📝";
-	    }
-	    if (lowerName.endsWith(".zip") || lowerName.endsWith(".rar")) {
-	      return "🗜️";
-	    }
-	    if (lowerName.endsWith(".mp4") || lowerName.endsWith(".mov")) {
-	      return "🎥";
-	    }
-	    if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".png")) {
-	      return "🖼️";
-	    }
-	    return "📄";
-	  };
-	  
+	  	    const lowerName = name.toLowerCase();
+	  	    if (lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls")) {
+	  	      return "📊";
+	  	    }
+	  	    if (lowerName.endsWith(".pptx") || lowerName.endsWith(".ppt")) {
+	  	      return "📑";
+	  	    }
+	  	    if (lowerName.endsWith(".pdf")) {
+	  	      return "📕";
+	  	    }
+	  	    if (lowerName.endsWith(".docx") || lowerName.endsWith(".doc")) {
+	  	      return "📝";
+	  	    }
+	  	    if (lowerName.endsWith(".zip") || lowerName.endsWith(".rar")) {
+	  	      return "🗜️";
+	  	    }
+	  	    if (lowerName.endsWith(".mp4") || lowerName.endsWith(".mov")) {
+	  	      return "🎥";
+	  	    }
+	  	    if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".png")) {
+	  	      return "🖼️";
+	  	    }
+	  	    return "📄";
+	  	  };
+ 
   return (
     <div className="page">
-      <PageHeader
-        eyebrow="Grow"
-        title="Programs"
-        subtitle="Structured tracks available on your current account."
-      />
+	<PageHeader
+	  eyebrow="Explore"
+	  title="BNY Demo"
+	  subtitle="Product demonstrations, walkthroughs and learning resources."
+	/>
  
 	  <div className="program-grid">
 	    {programs.map((p) => (
@@ -104,7 +102,7 @@ export default function Programs() {
 			    {p.description}
 			  </p>
 			  <button className="btn btn-secondary" onClick={() => openProgram(p)}>
-			    View Contents
+			    View Demo
 			  </button>
 
 			</div>
