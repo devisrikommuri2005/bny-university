@@ -7,7 +7,8 @@ export const createMandatoryTraining =
       "/admin/mandatory-trainings",
       {
         title: data.title,
-        sharePointUrl: data.link
+        sharePointUrl: data.link,
+		displayOrder: data.displayOrder
       }
     );
 };
@@ -19,7 +20,8 @@ export const updateMandatoryTrainingById =
       `/admin/mandatory-trainings/${id}`,
       {
         title: data.title,
-        sharePointUrl: data.link
+        sharePointUrl: data.link,
+		displayOrder: data.displayOrder
       }
     );
 };

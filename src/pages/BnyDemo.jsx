@@ -90,24 +90,38 @@ export default function BnyDemo() {
 	  subtitle="Product demonstrations, walkthroughs and learning resources."
 	/>
  
-	  <div className="program-grid">
-	    {programs.map((p) => (
-			<div className="program-card" key={p.id}>
+	<div className="demo-grid">
+	  {programs.map((p) => (
+	    <div
+	      key={p.id}
+	      className="demo-card"
+	      onClick={() => openProgram(p)}
+	    >
+	      <div className="demo-card-top">
+	        <div className="demo-icon">
+	          🎥
+	        </div>
+	        <div>
+	          <h2>
+	            {p.title}
+	          </h2>
+	          <p className="demo-description">
+	            {p.description}
+	          </p>
+	        </div>
+	      </div>
 
-			  <div className="program-card-top">
-			    <h2>{p.title}</h2>
-			  </div>
-
-			  <p className="program-description">
-			    {p.description}
-			  </p>
-			  <button className="btn btn-secondary" onClick={() => openProgram(p)}>
-			    View Demo
-			  </button>
-
-			</div>
-	    ))}
-	  </div>
+	      <div className="demo-footer">
+	        <span className="demo-badge">
+	          BNY Demo
+	        </span>
+	        <span className="demo-arrow">
+	          →
+	        </span>
+	      </div>
+	    </div>
+	  ))}
+	</div>
 	  {selectedProgram && (
 
 	    <section
@@ -118,36 +132,40 @@ export default function BnyDemo() {
 	        {selectedProgram.title}
 	      </h3>
 
-		  <h4>Folders</h4>
+		  {folders.length > 0 && (
+		    <>
+		      <h4>Folders</h4>
 
-		  <div className="resource-list">
+		      <div className="resource-list">
 
-		    {folders.map((resource) => (
+		        {folders.map((resource) => (
 
-		      <div
-		        key={resource.id}
-		        className="resource-row"
-		        onClick={() =>
-		          window.open(
-		            resource.url,
-		            "_blank"
-		          )
-		        }
-		      >
+		          <div
+		            key={resource.id}
+		            className="resource-row"
+		            onClick={() =>
+		              window.open(
+		                resource.url,
+		                "_blank"
+		              )
+		            }
+		          >
 
-		        <span className="resource-icon">
-		          📁
-		        </span>
+		            <span className="resource-icon">
+		              📁
+		            </span>
 
-		        <span>
-		          {resource.name}
-		        </span>
+		            <span>
+		              {resource.name}
+		            </span>
+
+		          </div>
+
+		        ))}
 
 		      </div>
-
-		    ))}
-
-		  </div>
+		    </>
+		  )}
 
 		  <h4
 		    style={{

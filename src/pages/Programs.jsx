@@ -119,6 +119,7 @@ export default function Programs() {
 	      <h3>
 	        {selectedProgram.title}
 	      </h3>
+<<<<<<< HEAD
  
 		  <h4>Folders</h4>
  
@@ -188,6 +189,86 @@ export default function Programs() {
  
 		  </div>
  
+=======
+		  
+		
+		  {folders.length > 0 && (
+		    <>
+		      <h4>Folders</h4>
+
+		      <div className="resource-list">
+
+		        {folders.map((resource) => (
+
+		          <div
+		            key={resource.id}
+		            className="resource-row"
+		            onClick={() =>
+		              window.open(
+		                resource.url,
+		                "_blank"
+		              )
+		            }
+		          >
+
+		            <span className="resource-icon">
+		              📁
+		            </span>
+
+		            <span>
+		              {resource.name}
+		            </span>
+
+		          </div>
+
+		        ))}
+
+		      </div>
+		    </>
+		  )}
+
+		  {files.length > 0 && (
+		    <>
+		      <h4
+		        style={{
+		          marginTop: "24px"
+		        }}
+		      >
+		        Files
+		      </h4>
+
+		      <div className="resource-list">
+
+		        {files.map((resource) => (
+
+		          <div
+		            key={resource.id}
+		            className="resource-row"
+		            onClick={() =>
+		              window.open(
+		                resource.url,
+		                "_blank"
+		              )
+		            }
+		          >
+
+		            <span className="resource-icon">
+		              {getFileIcon(resource.name)}
+		            </span>
+
+		            <span>
+		              {resource.name}
+		            </span>
+
+		          </div>
+
+		        ))}
+
+		      </div>
+		    </>
+		  )}
+
+>>>>>>> ba43e1a6caa4d972c3bda76aefc1768db1b2d9f8
 	    </section>
  
 	  )}
