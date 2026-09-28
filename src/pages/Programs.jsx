@@ -119,74 +119,83 @@ export default function Programs() {
 	      <h3>
 	        {selectedProgram.title}
 	      </h3>
+		  
+		
+		  {folders.length > 0 && (
+		    <>
+		      <h4>Folders</h4>
 
-		  <h4>Folders</h4>
+		      <div className="resource-list">
 
-		  <div className="resource-list">
+		        {folders.map((resource) => (
 
-		    {folders.map((resource) => (
+		          <div
+		            key={resource.id}
+		            className="resource-row"
+		            onClick={() =>
+		              window.open(
+		                resource.url,
+		                "_blank"
+		              )
+		            }
+		          >
 
-		      <div
-		        key={resource.id}
-		        className="resource-row"
-		        onClick={() =>
-		          window.open(
-		            resource.url,
-		            "_blank"
-		          )
-		        }
-		      >
+		            <span className="resource-icon">
+		              📁
+		            </span>
 
-		        <span className="resource-icon">
-		          📁
-		        </span>
+		            <span>
+		              {resource.name}
+		            </span>
 
-		        <span>
-		          {resource.name}
-		        </span>
+		          </div>
 
-		      </div>
-
-		    ))}
-
-		  </div>
-
-		  <h4
-		    style={{
-		      marginTop: "24px"
-		    }}
-		  >
-		    Files
-		  </h4>
-
-		  <div className="resource-list">
-
-		    {files.map((resource) => (
-
-		      <div
-		        key={resource.id}
-		        className="resource-row"
-		        onClick={() =>
-		          window.open(
-		            resource.url,
-		            "_blank"
-		          )
-		        }
-		      >
-
-		        <span className="resource-icon">
-		          {getFileIcon(resource.name)}
-		        </span>
-
-		        <span>
-		          {resource.name}
-		        </span>
+		        ))}
 
 		      </div>
+		    </>
+		  )}
 
-		    ))}
+		  {files.length > 0 && (
+		    <>
+		      <h4
+		        style={{
+		          marginTop: "24px"
+		        }}
+		      >
+		        Files
+		      </h4>
 
-		  </div>
+		      <div className="resource-list">
+
+		        {files.map((resource) => (
+
+		          <div
+		            key={resource.id}
+		            className="resource-row"
+		            onClick={() =>
+		              window.open(
+		                resource.url,
+		                "_blank"
+		              )
+		            }
+		          >
+
+		            <span className="resource-icon">
+		              {getFileIcon(resource.name)}
+		            </span>
+
+		            <span>
+		              {resource.name}
+		            </span>
+
+		          </div>
+
+		        ))}
+
+		      </div>
+		    </>
+		  )}
 
 	    </section>
 

@@ -166,6 +166,26 @@
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 .modal-confirm { text-align: center; }
 .modal-confirm p { margin-bottom: 18px; line-height: 1.6; color: var(--ink-soft); font-size: 14px; }
+.modal-overlay {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.45); z-index: 9999;
+}
+.modal-panel { width: 100%; max-width: 440px; background: #fff; border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2); overflow: hidden;
+}
+.validation-modal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.validation-ok-btn {
+  min-width: 100px;
+}
+ .validation-modal-message {
+  text-align: center;
+  margin: 0;
+}
  
 .field-label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
 .field-label:first-child { margin-top: 0; }
@@ -281,7 +301,7 @@
 .training-link:hover { text-decoration: underline; }
 .training-check-item select { width: auto; font-size: 12px; padding: 7px 10px; }
  
-.time-tracker-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.time-tracker-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; margin-top: 18px;}
 .time-tracker-table th {
   text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--ink-faint); font-weight: 600; padding: 0 8px 8px 0;
@@ -427,6 +447,21 @@
 .employee-remove:hover {
   color: #b63f2f;
 }
+
+.delete-message,
+.delete-name,
+.delete-warning {
+  text-align: center;
+}
+
+.delete-name {
+  margin: 12px 0;
+}
+
+.delete-warning {
+  font-size: 14px;
+  color: #6b7280;
+}
 /* =========================================================================
    Responsive
    ========================================================================= */
@@ -437,4 +472,64 @@
   .navbar-links { order: 3; width: 100%; }
   .app-content { padding: 24px 20px; }
   .tile-grid { grid-template-columns: 1fr; }
+}
+
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(320px, 1fr)
+  );
+  gap: 20px;
+}
+
+.demo-card {
+  background: #f4f6fa;
+  border: 1px solid #d9e1ee;
+  border-radius: 18px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.demo-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.08);
+}
+
+.demo-card-top {
+  display: flex;
+  gap: 16px;
+}
+
+.demo-icon {
+  font-size: 32px;
+}
+
+.demo-description {
+  margin-top: 8px;
+  color: #5d6683;
+}
+
+.demo-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.demo-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #e8eefc;
+  color: #244a9b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.demo-arrow {
+  font-size: 24px;
+  font-weight: bold;
 }

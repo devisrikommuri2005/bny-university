@@ -33,6 +33,7 @@ const TABS = [
  
 export default function Admin() {
   const [tab, setTab] = useState("users");
+  const [deleteConfig, setDeleteConfig] = useState(null);
  
   return (
     <div className="page">
@@ -60,22 +61,73 @@ export default function Admin() {
           </button>
         ))}
       </div>
- 
-      {tab === "users" && <UsersAdmin />}
-      {tab === "poc" && <PocAdmin />}
-      {tab === "files" && <OnboardingFilesAdmin />}
-      {tab === "onboarding" && <MandatoryTrainingAdmin />}
-	  {tab === "training" && <TrainingAdmin />}
-      {tab === "sessions" && <RecordingsAdmin />}
-      {tab === "prep" && <InterviewPrepAdmin />}
-      {tab === "programs" && <ProgramsAdmin />}
-	  {tab === "programResources" && <ProgramResourceAdmin />}
+  
+	  {tab === "users" && <UsersAdmin setDeleteConfig={setDeleteConfig}/>}
+      {tab === "poc" && <PocAdmin setDeleteConfig={setDeleteConfig}/>}
+      {tab === "files" && <OnboardingFilesAdmin setDeleteConfig={setDeleteConfig}/>}
+      {tab === "onboarding" && <MandatoryTrainingAdmin setDeleteConfig={setDeleteConfig}/>}
+	  {tab === "training" && <TrainingAdmin setDeleteConfig={setDeleteConfig}/>}
+      {tab === "sessions" && <RecordingsAdmin setDeleteConfig={setDeleteConfig}/>}
+      {tab === "prep" && <InterviewPrepAdmin setDeleteConfig={setDeleteConfig}/>}
+      {tab === "programs" && <ProgramsAdmin setDeleteConfig={setDeleteConfig}/>}
+	  {tab === "programResources" && <ProgramResourceAdmin setDeleteConfig={setDeleteConfig}/>}
+	  
+	  <Modal
+	    open={!!deleteConfig}
+	    title="Delete Item"
+	    onClose={() => setDeleteConfig(null)}
+	  >
+
+	    <form
+	      onSubmit={async (e) => {
+	        e.preventDefault();
+	        if (deleteConfig?.onConfirm) {
+	          await deleteConfig.onConfirm();
+	        }
+	        setDeleteConfig(null);
+	      }}
+	    >
+
+	      <p className="delete-message">
+	        Are you sure you want to delete
+	      </p>
+
+	      <h3 className="delete-name">
+	        {deleteConfig?.name}
+	      </h3>
+
+	      <p className="delete-warning">
+	        This action cannot be undone.
+	      </p>
+
+	      <div className="modal-actions">
+
+	        <button
+	          type="button"
+	          className="btn btn-secondary"
+	          onClick={() => setDeleteConfig(null)}
+	        >
+	          Cancel
+	        </button>
+
+			<button
+			  type="submit"
+			  data-delete-btn="true"
+			  autoFocus
+			  className="btn-ghost danger"
+			>
+			  Delete
+			</button>
+			
+	      </div>
+	    </form>
+	  </Modal>
     </div>
   );
 }
  
 // -------------------------------------------------------------- Users ----
-function UsersAdmin() {
+function UsersAdmin({setDeleteConfig}) {
 
   const [users, setUsers] = useState([]);
 
@@ -191,8 +243,13 @@ function UsersAdmin() {
               <button
                 className="btn-ghost danger"
                 onClick={async () => {
-                  await deleteUserById(u.id);
-                  await loadUsers();
+					setDeleteConfig({
+					  name: u.name,
+					  onConfirm: async () => {
+					    await deleteUserById(u.id);
+					    await loadUsers();
+					  }
+					});
                 }}
               >
                 Remove
@@ -303,7 +360,7 @@ function UsersAdmin() {
   );
 }
 // ---------------------------------------------------------------- POC ----
-function PocAdmin() {
+function PocAdmin({setDeleteConfig}) {
   const [editing, setEditing] = useState(null); // poc object or "new"
   const [form, setForm] = useState({ name: "", role: "", email: "", phone: "", slack: "" });
   const [employees, setEmployees] = useState({});
@@ -483,9 +540,15 @@ function PocAdmin() {
 			    Edit
 			  </button>
 
-			  <button className="btn-ghost danger" onClick={async () => {
-			      await deletePOCById(p.id);
-			      await loadPocs();
+			  <button className="btn-ghost danger" 
+			  onClick={async () => {
+				setDeleteConfig({
+				  name: p.name,
+				  onConfirm: async () => {
+				    await deletePOCById(p.id);
+				    await loadPocs();
+				  }
+				});
 			    }}>
 			    Remove
 			  </button>
@@ -539,7 +602,7 @@ function PocAdmin() {
 }
  
 // ------------------------------------------------------- Onboarding Files
-function OnboardingFilesAdmin() {
+function OnboardingFilesAdmin({setDeleteConfig}) {
 	const [onboardingFiles, setOnboardingFiles] = useState([]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({title: "",link: ""});
@@ -628,10 +691,16 @@ function OnboardingFilesAdmin() {
 		    <button
 		      className="btn-ghost danger"
 		      onClick={async () => {
-		        await deleteOnboardingFileById(
-		          f.id
-		        );
-				await loadOnboardingFiles();
+				
+				setDeleteConfig({
+				  name: f.title,
+				  onConfirm: async () => {
+				    await deleteOnboardingFileById(
+				      f.id
+				    );
+				    await loadOnboardingFiles();
+				  }
+				});
 		      }}
 		    >
 		      Remove
@@ -666,7 +735,7 @@ function OnboardingFilesAdmin() {
 }
  
 // ------------------------------------------------------------- Training
-function TrainingAdmin() {
+function TrainingAdmin({setDeleteConfig}) {
 
   const [trainings, setTrainings] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -770,10 +839,15 @@ function TrainingAdmin() {
               <button
                 className="btn-ghost danger"
                 onClick={async () => {
-                  await deleteTrainingById(
-                    training.id
-                  );
-				  await loadTrainings();
+					setDeleteConfig({
+					  name: training.title,
+					  onConfirm: async () => {
+					    await deleteTrainingById(
+					      training.id
+					    );
+					    await loadTrainings();
+					  }
+					});
                 }}
               >
                 Remove
@@ -872,40 +946,39 @@ function TrainingAdmin() {
   );
 }
 // ---------------------------------------------------- Mandatory Trainings
-function MandatoryTrainingAdmin() {
+function MandatoryTrainingAdmin({setDeleteConfig}) {
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({title: "", link: ""});
   const [mandatoryTrainings, setMandatoryTrainings] = useState([]);
   
+  const [form, setForm] = useState({
+      title: "",
+      link: "",
+      displayOrder: 1
+    });
+    
   const loadMandatoryTrainings =
     async () => {
-
       try {
-
         const response =
           await getMandatoryTrainings();
-
         setMandatoryTrainings(
           response.data
         );
-
       } catch (error) {
-
         console.error(error);
       }
   };
   
   useEffect(() => {
-
     loadMandatoryTrainings();
-
   }, []);
   
   const openEdit = (training) => {
     setEditing(training);
     setForm({
       title: training.title,
-      link: training.link || training.sharePointUrl
+      link: training.link || training.sharePointUrl || "",
+	  displayOrder: training.displayOrder ?? 1
     });
   };
   
@@ -913,13 +986,15 @@ function MandatoryTrainingAdmin() {
     setEditing(null);
     setForm({
       title: "",
-      link: ""
+      link: "",
+	  displayOrder: ""
     });
   };
+  
  
   const add = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.link)
+    if (!form.title || !form.link || !form.displayOrder)
       return;
     try {
       if (editing) {
@@ -950,6 +1025,10 @@ function MandatoryTrainingAdmin() {
 		      {t.title}
 		    </strong>
 		  </p>
+		  
+		  <p>
+		     Order: {t.displayOrder}
+		  </p>
 
 		  <p>
 		    {t.sharePointUrl || t.link}
@@ -970,11 +1049,16 @@ function MandatoryTrainingAdmin() {
 		      className="btn-ghost danger"
 		      onClick={async () => {
 
-		        await deleteMandatoryTrainingById(
-		          t.id
-		        );
-				await loadMandatoryTrainings();
-				cancelEdit();
+				setDeleteConfig({
+				  name: t.title,
+				  onConfirm: async () => {
+				    await deleteMandatoryTrainingById(
+				      t.id
+				    );
+				    await loadMandatoryTrainings();
+				    cancelEdit();
+				  }
+				});
 		      }}
 		    >
 		      Remove
@@ -988,6 +1072,12 @@ function MandatoryTrainingAdmin() {
       <form className="inline-add-form" onSubmit={add}>
         <input placeholder="Training title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         <input placeholder="Link (URL)" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
+		<input type="number" min="1" placeholder="Display Order" value={form.displayOrder}
+		          onChange={(e) => setForm({
+		              ...form, displayOrder: Number(e.target.value)
+		            })
+		          }
+		/>
 		<button
 		  type="submit"
 		  className="btn btn-primary"
@@ -1012,8 +1102,8 @@ function MandatoryTrainingAdmin() {
   );
 }
 
-// ------------------------------------------------------------- Sessions
-function RecordingsAdmin() {
+// ------------------------------------------------------------- Recording Sessions
+function RecordingsAdmin({setDeleteConfig}) {
   const [functionalTrainings, setFunctionalTrainings] = useState([]);
   const [sessions, setSessions] = useState({});
   const [selectedFt, setSelectedFt] = useState("");
@@ -1107,8 +1197,15 @@ function RecordingsAdmin() {
                   <li key={r.id} className="admin-row">
                     <a href={r.recordingUrl} target="_blank" rel="noreferrer">▶ {r.title}</a>
 					<button className="btn-ghost danger" onClick={async () => {
-						await deleteRecordedSession(r.id);
-						await loadSessions();
+						setDeleteConfig({
+						  name: r.title,
+						  onConfirm: async () => {
+						    await deleteRecordedSession(
+						      r.id
+						    );
+						    await loadSessions();
+						  }
+						});
 					}}
 					>
 					Remove
@@ -1182,7 +1279,7 @@ function InterviewPrepAdmin() {
 }
  
 // --------------------------------------------------------------- Programs
-function ProgramsAdmin() {
+function ProgramsAdmin({setDeleteConfig}) {
 
   const [programs, setPrograms] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -1276,17 +1373,16 @@ function ProgramsAdmin() {
 			    Edit
 			  </button>
 
-			  <button
-			    className="btn-ghost danger"
-			    onClick={async () => {
-
-			      await deleteProgramById(
-			        p.id
-			      );
-
-			      await loadPrograms();
-
-			    }}
+			  <button className="btn-ghost danger"
+			    onClick={() =>
+			      setDeleteConfig({
+			        name: p.title,
+			        onConfirm: async () => {
+			          await deleteProgramById(p.id);
+			          await loadPrograms();
+			        }
+			      })
+			    }
 			  >
 			    Remove
 			  </button>
@@ -1354,7 +1450,7 @@ function ProgramsAdmin() {
 }
  
 // --------------------------------------------------------------- Programs Resources
-function ProgramResourceAdmin() {
+function ProgramResourceAdmin({setDeleteConfig}) {
   const [programs, setPrograms] = useState([]);
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [resources, setResources] = useState([]);
@@ -1528,15 +1624,18 @@ function ProgramResourceAdmin() {
               </button>
 
               <button className="btn-ghost danger" onClick={async () => {
-
-                  await deleteProgramResource(
-                    resource.id
-                  );
-
-                  await loadResources(
-                    selectedProgramId
-                  );
-
+				
+				setDeleteConfig({
+				  name: resource.name,
+				  onConfirm: async () => {
+				    await deleteProgramResource(
+				      resource.id
+				    );
+				    await loadResources(
+				      selectedProgramId
+				    );
+				  }
+				});
                 }}
               >
                 Remove

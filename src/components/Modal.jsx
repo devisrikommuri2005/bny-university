@@ -17,11 +17,15 @@ export default function Modal({ open, title, onClose, children, width = 440 }) {
     // on every render, e.g. onClose={() => setEditing(null)}, and
     // including it here re-ran this effect on every keystroke, which
     // kept stealing focus back to whatever matched first in the DOM.)
-    const t = setTimeout(() => {
-      dialogRef.current
-        ?.querySelector(".modal-body input, .modal-body select, .modal-body textarea, .modal-body button")
-        ?.focus();
-    }, 0);
+	const t = setTimeout(() => {
+
+	  const target =
+	    dialogRef.current?.querySelector(
+	      "[data-delete-btn='true']"
+	    );
+	  target?.focus();
+	}, 0);
+	
     return () => {
       document.removeEventListener("keydown", onKey);
       clearTimeout(t);
@@ -43,7 +47,7 @@ export default function Modal({ open, title, onClose, children, width = 440 }) {
       >
         <div className="modal-header">
           <h3 id="modal-title">{title}</h3>
-          <button className="modal-close" aria-label="Close dialog" onClick={onClose}>
+		  <button type="button" className="modal-close" aria-label="Close dialog" onClick={onClose}>
             &times;
           </button>
         </div>
