@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { usePortalData } from "../context/PortalDataContext.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
+//import { usePortalData } from "../context/PortalDataContext.jsx";
+//import { useAuth } from "../context/AuthContext.jsx";
 import { exportAllData } from "../data/mockData.js";
 import { PageHeader, SectionHeading } from "./Dashboard.jsx";
 import Modal from "../components/Modal.jsx";
@@ -17,6 +17,7 @@ import {getAllPrograms, createProgram, updateProgramById, deleteProgramById} fro
 import {getMandatoryTrainings} from "../services/mandatoryTrainingService";
 import {getAllUsers as getAdminUsers, getUserById, createUser, updateUserById, deleteUserById} from "../services/adminUserService";
 import {getProgramResources, createProgramResource, updateProgramResource, deleteProgramResource} from "../services/programResourceService";
+import InterviewPrepAdmin from "../components/admin/InterviewPrepAdmin.jsx";
 
 const TABS = [
   { id: "users", label: "Manage Users" },
@@ -1125,61 +1126,7 @@ function RecordingsAdmin() {
 }
 
 // -------------------------------------------------------- Interview prep
-function InterviewPrepAdmin() {
-  const { data, addInterviewQuestion, addFaq } = usePortalData();
-  const [q, setQ] = useState({ q: "", tag: "" });
-  const [faq, setFaq] = useState({ q: "", a: "" });
- 
-  const submitQ = (e) => {
-    e.preventDefault();
-    if (!q.q) return;
-    addInterviewQuestion(q);
-    setQ({ q: "", tag: "" });
-  };
- 
-  const submitFaq = (e) => {
-    e.preventDefault();
-    if (!faq.q || !faq.a) return;
-    addFaq(faq);
-    setFaq({ q: "", a: "" });
-  };
- 
-  return (
-    <section className="card section-card">
-      <SectionHeading title="Interview Questions" note={`${data.interviewPrep.questions.length} listed`} />
-      <ul className="qa-list">
-        {data.interviewPrep.questions.map((item) => (
-          <li key={item.id}>
-            <span className="badge badge-periwinkle">{item.tag}</span>
-            <p>{item.q}</p>
-          </li>
-        ))}
-      </ul>
-      <form className="inline-add-form" onSubmit={submitQ}>
-        <input placeholder="Tag (e.g. Java, General)" value={q.tag} onChange={(e) => setQ({ ...q, tag: e.target.value })} />
-        <input placeholder="Question" value={q.q} onChange={(e) => setQ({ ...q, q: e.target.value })} />
-        <button type="submit" className="btn btn-primary">+ Add question</button>
-      </form>
- 
-      <div className="section-divider" />
- 
-      <SectionHeading title="FAQs" note={`${data.interviewPrep.faqs.length} listed`} />
-      <div className="faq-list">
-        {data.interviewPrep.faqs.map((f) => (
-          <details className="faq-item" key={f.id}>
-            <summary>{f.q}</summary>
-            <p>{f.a}</p>
-          </details>
-        ))}
-      </div>
-      <form className="inline-add-form stacked" onSubmit={submitFaq}>
-        <input placeholder="Question" value={faq.q} onChange={(e) => setFaq({ ...faq, q: e.target.value })} />
-        <textarea placeholder="Answer" value={faq.a} onChange={(e) => setFaq({ ...faq, a: e.target.value })} rows={2} />
-        <button type="submit" className="btn btn-primary">+ Add FAQ</button>
-      </form>
-    </section>
-  );
-}
+
  
 // --------------------------------------------------------------- Programs
 function ProgramsAdmin() {

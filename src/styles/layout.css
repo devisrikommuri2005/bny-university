@@ -140,36 +140,303 @@
 /* =========================================================================
    Modal
    ========================================================================= */
+
 .modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(51,57,77,0.42);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-  z-index: 100;
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(51, 57, 77, 0.38);
+
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  z-index: 1000;
 }
+
+
+/* Main modal box */
+
 .modal-panel {
+  width: min(460px, 100%);
+
   background: var(--white);
-  border-radius: var(--radius-lg);
-  width: 100%;
-  box-shadow: var(--shadow-pop);
+
+  border: 1px solid var(--line);
+
+  border-radius: 22px;
+
+  box-shadow:
+    0 20px 50px rgba(51, 57, 77, 0.18),
+    0 4px 14px rgba(51, 57, 77, 0.08);
+
+  overflow: hidden;
+
   max-height: 90vh;
-  overflow-y: auto;
+
+  animation: modalAppear 0.18s ease-out;
 }
+
+
+/* Modal entrance */
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* Header */
+
 .modal-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 24px 0;
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 22px 24px 12px;
+
+  border-bottom: 1px solid var(--line);
 }
-.modal-close { background: none; border: none; font-size: 22px; color: var(--ink-faint); line-height: 1; }
-.modal-body { padding: 16px 24px 24px; }
-.modal-hint { font-size: 13px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 16px; }
-.modal-hint-note { color: var(--ink-faint); }
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-.modal-confirm { text-align: center; }
-.modal-confirm p { margin-bottom: 18px; line-height: 1.6; color: var(--ink-soft); font-size: 14px; }
- 
-.field-label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
-.field-label:first-child { margin-top: 0; }
-.field-error { color: var(--error); font-size: 12px; margin-top: 6px; }
+
+
+.modal-header h2,
+.modal-header h3 {
+  margin: 0;
+
+  font-family: var(--font-display);
+
+  font-size: 22px;
+
+  font-weight: 600;
+
+  color: var(--ink);
+}
+
+
+/* Close button */
+
+.modal-close {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  background: var(--cream);
+
+  border: 1px solid var(--line);
+
+  border-radius: 50%;
+
+  color: var(--ink-soft);
+
+  font-size: 20px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+
+.modal-close:hover {
+  background: var(--dusty-rose);
+
+  color: var(--ink);
+
+  transform: rotate(3deg);
+}
+
+
+/* Body */
+
+.modal-body {
+  padding: 22px 24px 24px;
+}
+
+
+/* Normal modal hint */
+
+.modal-hint {
+  margin-bottom: 16px;
+
+  color: var(--ink-soft);
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+
+.modal-hint-note {
+  color: var(--ink-faint);
+}
+
+
+/* Confirmation modal */
+
+.modal-confirm {
+  text-align: center;
+
+  padding: 8px 4px 2px;
+}
+
+
+/* Delete confirmation text */
+
+.modal-confirm p {
+  margin: 0 0 24px;
+
+  color: var(--ink-soft);
+
+  font-size: 15px;
+
+  line-height: 1.7;
+}
+
+
+.modal-confirm p strong {
+  display: block;
+
+  margin-top: 6px;
+
+  color: var(--ink);
+
+  font-family: var(--font-display);
+
+  font-size: 20px;
+}
+
+
+/* Action buttons */
+
+.modal-actions {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-top: 22px;
+}
+
+
+.modal-actions button {
+  min-width: 105px;
+
+  padding: 10px 18px;
+
+  border-radius: 10px;
+
+  font-family: var(--font-body);
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease;
+}
+
+
+.modal-actions button:active {
+  transform: translateY(1px);
+}
+
+
+/* Cancel */
+
+.modal-actions button:first-child {
+  background: var(--cream);
+
+  border: 1px solid var(--line);
+
+  color: var(--ink);
+}
+
+
+.modal-actions button:first-child:hover {
+  background: var(--cream-deep);
+
+  border-color: var(--ink-faint);
+}
+
+
+/* Delete */
+
+.modal-actions button:last-child {
+  background: var(--error-bg);
+
+  border: 1px solid var(--dusty-rose-deep);
+
+  color: var(--error);
+}
+
+
+.modal-actions button:last-child:hover {
+  background: var(--dusty-rose);
+
+  border-color: var(--error);
+
+  box-shadow: 0 4px 12px rgba(184, 92, 77, 0.12);
+}
+
+
+/* Form labels inside modal */
+
+.field-label {
+  display: block;
+
+  margin: 12px 0 6px;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: var(--ink);
+}
+
+
+.field-label:first-child {
+  margin-top: 0;
+}
+
+
+.field-error {
+  margin-top: 6px;
+
+  color: var(--error);
+
+  font-size: 12px;
+}
  
 /* =========================================================================
    App shell / Navbar
@@ -437,4 +704,821 @@
   .navbar-links { order: 3; width: 100%; }
   .app-content { padding: 24px 20px; }
   .tile-grid { grid-template-columns: 1fr; }
+}
+
+.interview-prep-section {
+  margin-top: 24px;
+}
+
+.interview-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.interview-section-header h3 {
+  font-size: 20px;
+}
+
+.interview-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 11px;
+
+  border-radius: 999px;
+
+  background: var(--cream-deep);
+  border: 1px solid var(--line);
+
+  color: var(--ink-soft);
+
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   TECHNOLOGY BADGES
+   ========================================================= */
+
+.tech-badge {
+  display: inline-flex;
+  align-items: center;
+
+  width: fit-content;
+
+  padding: 5px 12px;
+
+  border-radius: 999px;
+
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+
+  letter-spacing: 0.03em;
+
+  border: 1px solid;
+}
+
+
+/* Java - Periwinkle */
+
+.tech-java {
+  background: var(--periwinkle);
+  border-color: var(--periwinkle-deep);
+  color: #29335C;
+}
+
+
+/* Mainframe - Dusty Rose */
+
+.tech-mainframe {
+  background: var(--dusty-rose);
+  border-color: var(--dusty-rose-deep);
+  color: #6B3226;
+}
+
+
+/* .NET FSD - Sage */
+
+.tech-net-fsd {
+  background: var(--sage);
+  border-color: var(--sage-deep);
+  color: #2E4D33;
+}
+
+
+/* FSD - Soft Blue */
+
+.tech-fsd {
+  background: #DCE8F4;
+  border-color: #AFC7DF;
+  color: #385A76;
+}
+
+
+/* Testing - Gold */
+
+.tech-testing {
+  background: var(--gold);
+  border-color: var(--gold-deep);
+  color: #5C4712;
+}
+
+
+/* Frontend - Soft Rose */
+
+.tech-frontend {
+  background: #F2D9E1;
+  border-color: #DCAEBE;
+  color: #743E52;
+}
+
+
+/* Backend - Soft Lavender */
+
+.tech-backend {
+  background: #DDDDF4;
+  border-color: #B5B5DF;
+  color: #4B4B7D;
+}
+
+
+/* Data Engineering - Sage Green */
+
+.tech-data-engineering {
+  background: #DCEAD8;
+  border-color: #B2CFAB;
+  color: #41643B;
+}
+
+
+/* Unknown / fallback */
+
+.tech-default {
+  background: var(--cream-deep);
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+
+/* =========================================================
+   INTERVIEW QUESTION CARDS
+   ========================================================= */
+
+.interview-question-card {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 18px 20px;
+
+  margin-bottom: 12px;
+
+  background: var(--white);
+
+  border: 1px solid var(--line);
+
+  border-radius: var(--radius-md);
+
+  box-shadow: 0 2px 8px rgba(51, 57, 77, 0.035);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.interview-question-card:hover {
+  transform: translateY(-2px);
+
+  border-color: var(--line-cool);
+
+  box-shadow: var(--shadow-card);
+}
+
+.interview-question-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.interview-question-text {
+  margin: 8px 0 0;
+
+  color: var(--ink);
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+
+
+/* =========================================================
+   FAQ CARDS
+   ========================================================= */
+
+.faq-card {
+  padding: 18px 20px;
+
+  margin-bottom: 12px;
+
+  background: var(--white);
+
+  border: 1px solid var(--line);
+
+  border-radius: var(--radius-md);
+
+  box-shadow: 0 2px 8px rgba(51, 57, 77, 0.035);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.faq-card:hover {
+  transform: translateY(-2px);
+
+  border-color: var(--dusty-rose);
+
+  box-shadow: var(--shadow-card);
+}
+
+.faq-question {
+  margin: 0;
+
+  color: var(--ink);
+
+  font-family: var(--font-display);
+
+  font-size: 16px;
+  font-weight: 600;
+
+  line-height: 1.4;
+}
+
+.faq-answer {
+  margin: 9px 0 0;
+
+  color: var(--ink-soft);
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   INTERVIEW ACTION BUTTONS
+   ========================================================= */
+
+.interview-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  flex-shrink: 0;
+}
+
+
+/* Base */
+
+.interview-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: var(--radius-sm);
+
+  padding: 7px 13px;
+
+  font-family: var(--font-body);
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+.interview-btn:active {
+  transform: translateY(1px);
+}
+
+
+/* Edit - Lavender */
+
+.interview-edit-btn {
+  background: #EEEAFB;
+
+  border: 1px solid #D6CDEF;
+
+  color: #63528D;
+}
+
+.interview-edit-btn:hover {
+  background: #E4DDF5;
+
+  box-shadow:
+    0 4px 10px rgba(99, 82, 141, 0.12);
+}
+
+
+/* Remove - Dusty Rose */
+
+.interview-delete-btn {
+  background: var(--error-bg);
+
+  border: 1px solid #EAC7C0;
+
+  color: var(--error);
+}
+
+.interview-delete-btn:hover {
+  background: #F3DCD7;
+
+  box-shadow:
+    0 4px 10px rgba(184, 92, 77, 0.12);
+}
+
+
+/* =========================================================
+   ADD / UPDATE BUTTON
+   ========================================================= */
+
+.interview-submit-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 18px;
+
+  border-radius: var(--radius-sm);
+
+  border: 1px solid var(--sage-deep);
+
+  background: var(--sage);
+
+  color: #2E4D33;
+
+  font-family: var(--font-body);
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+.interview-submit-btn:hover {
+  background: #B8D3B8;
+
+  box-shadow:
+    0 5px 12px rgba(78, 143, 99, 0.14);
+}
+
+.interview-submit-btn:active {
+  transform: translateY(1px);
+}
+
+.interview-submit-btn:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   CANCEL BUTTON
+   ========================================================= */
+
+.interview-cancel-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 17px;
+
+  border-radius: var(--radius-sm);
+
+  border: 1px solid var(--line);
+
+  background: var(--cream-deep);
+
+  color: var(--ink-soft);
+
+  font-family: var(--font-body);
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.interview-cancel-btn:hover {
+  background: var(--cream);
+
+  border-color: var(--ink-faint);
+}
+
+
+/* =========================================================
+   FORM ACTION AREA
+   ========================================================= */
+
+.interview-form-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  margin-top: 12px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.interview-empty-state {
+  padding: 28px 20px;
+
+  text-align: center;
+
+  background: var(--cream);
+
+  border: 1px dashed var(--line);
+
+  border-radius: var(--radius-md);
+
+  color: var(--ink-faint);
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .interview-question-card {
+    flex-direction: column;
+  }
+
+  .interview-actions {
+    width: 100%;
+  }
+
+  .interview-btn {
+    flex: 1;
+  }
+
+  .faq-card > div {
+    flex-direction: column;
+  }
+
+  .interview-section-header {
+    align-items: flex-start;
+  }
+}
+
+/* =========================================================
+   TRAINING - INTERVIEW PREP
+   Campus Pastel Theme
+   ========================================================= */
+
+.training-interview-section {
+  margin-top: 20px;
+}
+
+
+/* ---------------------------------------------------------
+   Technology filter
+   --------------------------------------------------------- */
+
+.training-tech-filter {
+   margin-top: 24px;
+   margin-bottom: 26px;
+   }
+
+   .training-tech-filter label {
+     display: block;
+     margin-bottom: 8px;
+
+     color: var(--ink);
+
+     font-size: 14px;
+     font-weight: 600;
+   }
+
+/* ---------------------------------------------------------
+   Interview question list
+   --------------------------------------------------------- */
+
+.training-question-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+
+/* Individual question */
+
+.training-question-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 12px 14px;
+
+  background: var(--white);
+
+  border: 1px solid var(--line);
+
+  border-radius: var(--radius-md);
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+
+.training-question-item:hover {
+  background: #FFFDF9;
+
+  border-color: var(--line-cool);
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 4px 12px rgba(51, 57, 77, 0.06);
+}
+
+
+/* Question text */
+
+.training-question-text {
+  flex: 1;
+
+  color: var(--ink);
+
+  font-size: 15px;
+
+  line-height: 1.5;
+}
+
+
+/* ---------------------------------------------------------
+   Technology badges
+   --------------------------------------------------------- */
+
+.training-tech-badge {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  min-width: 70px;
+
+  padding: 5px 11px;
+
+  border-radius: 999px;
+
+  font-family: var(--font-mono);
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.03em;
+
+  border: 1px solid;
+}
+
+
+/* Java */
+
+.training-tech-java {
+  background: var(--periwinkle);
+
+  border-color: var(--periwinkle-deep);
+
+  color: #29335C;
+}
+
+
+/* Mainframe */
+
+.training-tech-mainframe {
+  background: var(--dusty-rose);
+
+  border-color: var(--dusty-rose-deep);
+
+  color: #6B3226;
+}
+
+
+/* .NET FSD */
+
+.training-tech-net-fsd {
+  background: var(--sage);
+
+  border-color: var(--sage-deep);
+
+  color: #2E4D33;
+}
+
+
+/* FSD */
+
+.training-tech-fsd {
+  background: #DCE8F4;
+
+  border-color: #AFC7DF;
+
+  color: #385A76;
+}
+
+
+/* Testing */
+
+.training-tech-testing {
+  background: var(--gold);
+
+  border-color: var(--gold-deep);
+
+  color: #5C4712;
+}
+
+
+/* Frontend */
+
+.training-tech-frontend {
+  background: #F2D9E1;
+
+  border-color: #DCAEBE;
+
+  color: #743E52;
+}
+
+
+/* Backend */
+
+.training-tech-backend {
+  background: #DDDDF4;
+
+  border-color: #B5B5DF;
+
+  color: #4B4B7D;
+}
+
+
+/* Data Engineering */
+
+.training-tech-data-engineering {
+  background: #DCEAD8;
+
+  border-color: #B2CFAB;
+
+  color: #41643B;
+}
+
+
+/* Fallback */
+
+.training-tech-default {
+  background: var(--cream-deep);
+
+  border-color: var(--line);
+
+  color: var(--ink-soft);
+}
+
+
+/* ---------------------------------------------------------
+   FAQ cards
+   --------------------------------------------------------- */
+
+.training-faq-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+  margin-top: 20px;
+}
+
+
+.training-faq-item {
+  background: var(--white);
+
+  border: 1px solid var(--line);
+
+  border-radius: var(--radius-md);
+
+  overflow: hidden;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+
+.training-faq-item:hover {
+  border-color: var(--dusty-rose);
+
+  box-shadow:
+    0 4px 14px rgba(51, 57, 77, 0.06);
+}
+
+
+.training-faq-item summary {
+  padding: 16px 18px;
+
+  cursor: pointer;
+
+  list-style: none;
+
+  color: var(--ink);
+
+  font-family: var(--font-display);
+
+  font-size: 15px;
+
+  font-weight: 600;
+}
+
+
+.training-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+
+.training-faq-item summary::after {
+  content: "+";
+
+  float: right;
+
+  color: var(--dusty-rose-deep);
+
+  font-family: var(--font-body);
+
+  font-size: 20px;
+
+  font-weight: 400;
+}
+
+
+.training-faq-item[open] summary::after {
+  content: "−";
+}
+
+
+.training-faq-answer {
+  padding: 0 18px 17px;
+
+  color: var(--ink-soft);
+
+  font-size: 13px;
+
+  line-height: 1.7;
+}
+
+
+
+/* ---------------------------------------------------------
+   Mobile
+   --------------------------------------------------------- */
+
+@media (max-width: 700px) {
+
+  .training-question-item {
+    align-items: flex-start;
+  }
+
+  .training-tech-badge {
+    min-width: auto;
+  }
+
 }
