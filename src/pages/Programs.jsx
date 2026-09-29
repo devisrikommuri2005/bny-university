@@ -119,7 +119,6 @@ export default function Programs() {
 	      <h3>
 	        {selectedProgram.title}
 	      </h3>
-<<<<<<< HEAD
  
 		  <h4>Folders</h4>
  

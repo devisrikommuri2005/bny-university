@@ -1,16 +1,5 @@
 import { useEffect, useState } from "react";
-
-
-
-
-
-import {
-
-    getInterviewCategories,
-
-    createInterviewCategory
-
-} from "../../services/interviewCategoryService";
+import { getInterviewCategories, createInterviewCategory } from "../../services/interviewCategoryService";
 
 import {
 
